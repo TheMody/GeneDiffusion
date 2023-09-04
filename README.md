@@ -1,6 +1,6 @@
 # Genetic Diffusion
 
-The Repository for Generating synthetic gentics data with Diffusion Models.
+The Repository for generating synthetic genetics data with Diffusion Models.
 
 ## Abstract
 
@@ -24,6 +24,6 @@ For replicating the Results run:
 ```
 $ python train.py
 ```
-The scrip expects the sigSNPs_pca.features.pkl to be in the data/sigSNPs_pca.features.pkl path. This data is not provided by this repository.
+The script expects the sigSNPs_pca.features.pkl to be in the data/sigSNPs_pca.features.pkl path. This data is not provided by this repository.
 
 
