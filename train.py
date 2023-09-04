@@ -35,10 +35,10 @@ def train_one_epoch(
             device
         )
         xt, eps = diffusion.sample_from_forward_process(genes, t)
-      #  print(eps.min().item()), print(eps.max().item())
-     #   print(xt.shape)
         pred_eps = model(xt, t, y=labels)
 
+
+        #logging
         if step % 50 == 0:
             model.train()
             print(f"step: {step}, loss: {avgloss/avglosssteps}")
@@ -49,7 +49,6 @@ def train_one_epoch(
             avgloss = 0
             avglosssteps = 0
 
-        print(pred_eps[0])
         loss = ((pred_eps - eps) ** 2).mean()
         avgloss = avgloss  + loss.item()
         avglosssteps = avglosssteps + 1

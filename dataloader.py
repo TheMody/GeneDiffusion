@@ -7,16 +7,6 @@ import torch
 def load_data():
     print("Loading data...")
     dataset_X,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
-    # _,Ydif=pickle.load(open('data/A3GALT2.pkl','rb'))
-
-    # Ydif = np.argmax(Ydif,axis=1)
-    # print(Ydif)
-    # for i in range(len(Ydif)):
-    #     if not Ydif[i] == Y[i]:
-    #         print("diff detected")
-   # print(Ydif)
-   # print(dataset_X)
-   # print(Y)
 
     print("Data loaded!")
 
@@ -25,8 +15,6 @@ def load_data():
 class GeneticDataset(Dataset):
     def __init__(self):
         self.x,self.y = load_data()
-     #   self.x = self.x[:int(0.1*len(self.x))]
-     #   self.y = self.y[:int(0.1*len(self.y))]
         #now we shuffle x and y
         np.random.seed(42)
         p = np.random.permutation(len(self.x))
@@ -38,7 +26,6 @@ class GeneticDataset(Dataset):
 
     def __getitem__(self, idx):
         genome = self.x[idx]
-        #print(genome.shape)
         label = self.y[idx]
         return genome, label
 

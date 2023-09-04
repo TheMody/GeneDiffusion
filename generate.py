@@ -1,7 +1,6 @@
 import torch
 from diffusion_Process import GuassianDiffusion
-from unets import UNet
-from data import *
+from dataloader import *
 import matplotlib.pyplot as plt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
