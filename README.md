@@ -1,6 +1,6 @@
 # Genetic Diffusion
 
-The Repository for Generating synthetic gentics data with Diffusion Models.
+The Repository for generating synthetic genetics data with Diffusion Models.
 
 ## Abstract
 
