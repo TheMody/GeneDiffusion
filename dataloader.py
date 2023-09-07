@@ -3,18 +3,49 @@ import numpy as np
 from tqdm import tqdm
 from torch.utils.data import Dataset
 import torch
+import torch.nn.functional as F
+import os
 
 def load_data():
     print("Loading data...")
-    dataset_X,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
+    _,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
+    dataset_X = pickle.load(open("data/processed_ds","rb"))
+    # _,Ydif=pickle.load(open('data/A3GALT2.pkl','rb'))
 
+    # Ydif = np.argmax(Ydif,axis=1)
+    # print(Ydif)
+    # for i in range(len(Ydif)):
+    #     if not Ydif[i] == Y[i]:
+    #         print("diff detected")
+   # print(Ydif)
+   # print(dataset_X)
+   # print(Y)
+#    Y = None
+   # print(dataset_X.shape)
     print("Data loaded!")
 
     return np.asarray(dataset_X), np.asarray(Y)
 
+class SynGeneticDataset(Dataset):
+    def __init__(self):
+        self.path = "syn_data/"
+        self.all_file_paths = [self.path + file for file in os.listdir(self.path)]
+        # for file in os.listdir(self.path):
+        #     self.x,self.y = torch.load(open(file,"rb"))
+
+    def __len__(self):
+        return len(self.all_file_paths)
+
+    def __getitem__(self, idx):
+        genome, label = torch.load(self.all_file_paths[idx])
+        label = F.one_hot(label.squeeze(),2)
+        return genome, label.float()
+
 class GeneticDataset(Dataset):
     def __init__(self):
         self.x,self.y = load_data()
+     #   self.x = self.x[:int(0.1*len(self.x))]
+     #   self.y = self.y[:int(0.1*len(self.y))]
         #now we shuffle x and y
         np.random.seed(42)
         p = np.random.permutation(len(self.x))
@@ -26,8 +57,11 @@ class GeneticDataset(Dataset):
 
     def __getitem__(self, idx):
         genome = self.x[idx]
+      #  genome = genome[None,...]
+        genome = F.pad(torch.tensor(genome), (0,0,0, 18432 - genome.shape[0]), "constant", 0)
+     #   print(genome.shape)
         label = self.y[idx]
-        return genome, label
+        return genome, label#[:16384,]
 
 def GeneticDataloaders(batchsize):
     dataset = GeneticDataset()

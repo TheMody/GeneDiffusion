@@ -24,20 +24,20 @@ class GuassianDiffusion:
         self.get_x0_from_xt_eps = lambda xt, eps, t, scalars: (
             self.clamp_x0(
                 1
-                / unsqueeze3x(scalars.alpha_bar[t].sqrt())
-                * (xt - unsqueeze3x((1 - scalars.alpha_bar[t]).sqrt()) * eps)
+                / scalars.alpha_bar[t].sqrt().unsqueeze(-1).unsqueeze(-1)
+                * (xt - (1 - scalars.alpha_bar[t]).sqrt().unsqueeze(-1).unsqueeze(-1) * eps)
             )
         )
         self.get_pred_mean_from_x0_xt = (
-            lambda xt, x0, t, scalars: unsqueeze3x(
+            lambda xt, x0, t, scalars: (
                 (scalars.alpha_bar[t].sqrt() * scalars.beta[t])
                 / ((1 - scalars.alpha_bar[t]) * scalars.alpha[t].sqrt())
-            )
+            ).unsqueeze(-1).unsqueeze(-1)
             * x0
-            + unsqueeze3x(
+            + (
                 (scalars.alpha[t] - scalars.alpha_bar[t])
                 / ((1 - scalars.alpha_bar[t]) * scalars.alpha[t].sqrt())
-            )
+            ).unsqueeze(-1).unsqueeze(-1)
             * xt
         )
 
@@ -84,7 +84,7 @@ class GuassianDiffusion:
       #  print(eps[0])
       #  print(x0.shape)
       #  print(self.scalars.alpha_bar[t].sqrt().unsqueeze(-1))
-        xt = self.scalars.alpha_bar[t].sqrt().unsqueeze(-1) * x0 + (1 - self.scalars.alpha_bar[t]).sqrt().unsqueeze(-1)* eps
+        xt = self.scalars.alpha_bar[t].sqrt().unsqueeze(-1).unsqueeze(-1) * x0 + (1 - self.scalars.alpha_bar[t]).sqrt().unsqueeze(-1).unsqueeze(-1)* eps
         
         return xt.float(), eps 
 
@@ -128,14 +128,17 @@ class GuassianDiffusion:
             with torch.no_grad():
                 current_t = torch.tensor([t] * len(final), device=final.device)
                 current_sub_t = torch.tensor([i] * len(final), device=final.device)
+               # print(final.shape)
                 pred_epsilon = model(final, current_t, **model_kwargs)
                 # using xt+x0 to derive mu_t, instead of using xt+eps (former is more stable)
                 pred_x0 = self.get_x0_from_xt_eps(
                     final, pred_epsilon, current_sub_t, scalars
                 )
+             #   print(pred_x0.shape)
                 pred_mean = self.get_pred_mean_from_x0_xt(
                     final, pred_x0, current_sub_t, scalars
                 )
+              #  print(pred_mean.shape)
                 if i == 0:
                     final = pred_mean
                 else:
@@ -149,8 +152,8 @@ class GuassianDiffusion:
                             * pred_epsilon
                         )
                     else:
-                        final = pred_mean + unsqueeze3x(
+                        final = pred_mean + (
                             scalars.beta_tilde[current_sub_t].sqrt()
-                        ) * torch.randn_like(final)
+                        ).unsqueeze(-1).unsqueeze(-1) * torch.randn_like(final)
                 final = final.detach()
         return final
