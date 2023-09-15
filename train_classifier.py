@@ -21,7 +21,7 @@ if __name__ == "__main__":
     model = MLPModel(num_input=18432*8)
 
     model = model.to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)#torch.optim.Adam(model.parameters(), lr=0.001)#
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.001)#torch.optim.Adam(model.parameters(), lr=0.001)#
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="disease_prediction_syn")
 

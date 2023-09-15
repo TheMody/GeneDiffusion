@@ -4,7 +4,7 @@ import torch
 import numpy as np 
 from easydict import EasyDict
 
-unsqueeze3x = lambda x: x[..., None, None]
+unsqueeze3x = lambda x: x[..., None,None] #extra Nones needed per input dimension
 class GuassianDiffusion:
     """Gaussian diffusion process with 1) Cosine schedule for beta values (https://arxiv.org/abs/2102.09672)
     2) L_simple training objective from https://arxiv.org/abs/2006.11239.

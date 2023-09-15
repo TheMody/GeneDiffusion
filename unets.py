@@ -745,18 +745,18 @@ def UNet1d(
     image_size,
     in_channels=3,
     out_channels=3,
-    base_width=64,
+    base_width=192,
     num_classes=None,
 ):
     # if image_size == 256:
     #     channel_mult = (1, 1, 1, 2, 3, 4)
 
-    channel_mult = (1, 1, 2, 2,2,3)
+    channel_mult = (1, 1, 2, 2,2,2,3)
 
 
     attention_ds = []
 
-    attention_resolutions = "32"
+    attention_resolutions = "32,64"
     for res in attention_resolutions.split(","):
         attention_ds.append(int(res))
 

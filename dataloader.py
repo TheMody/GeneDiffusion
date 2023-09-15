@@ -6,22 +6,11 @@ import torch
 import torch.nn.functional as F
 import os
 
-def load_data():
+def load_data(processed = True):
     print("Loading data...")
-    _,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
-    dataset_X = pickle.load(open("data/processed_ds","rb"))
-    # _,Ydif=pickle.load(open('data/A3GALT2.pkl','rb'))
-
-    # Ydif = np.argmax(Ydif,axis=1)
-    # print(Ydif)
-    # for i in range(len(Ydif)):
-    #     if not Ydif[i] == Y[i]:
-    #         print("diff detected")
-   # print(Ydif)
-   # print(dataset_X)
-   # print(Y)
-#    Y = None
-   # print(dataset_X.shape)
+    dataset_X,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
+    if processed:
+        dataset_X = pickle.load(open("data/processed_ds","rb"))
     print("Data loaded!")
 
     return np.asarray(dataset_X), np.asarray(Y)
@@ -42,8 +31,9 @@ class SynGeneticDataset(Dataset):
         return genome, label.float()
 
 class GeneticDataset(Dataset):
-    def __init__(self):
-        self.x,self.y = load_data()
+    def __init__(self, processed = True):
+        self.x,self.y = load_data(processed = processed)
+        self.processed = processed
      #   self.x = self.x[:int(0.1*len(self.x))]
      #   self.y = self.y[:int(0.1*len(self.y))]
         #now we shuffle x and y
@@ -58,13 +48,14 @@ class GeneticDataset(Dataset):
     def __getitem__(self, idx):
         genome = self.x[idx]
       #  genome = genome[None,...]
-        genome = F.pad(torch.tensor(genome), (0,0,0, 18432 - genome.shape[0]), "constant", 0)
+        if self.processed:
+            genome = F.pad(torch.tensor(genome), (0,0,0, 18432 - genome.shape[0]), "constant", 0)
      #   print(genome.shape)
         label = self.y[idx]
-        return genome, label#[:16384,]
+        return genome, label
 
-def GeneticDataloaders(batchsize):
-    dataset = GeneticDataset()
+def GeneticDataloaders(batchsize, processed = True):
+    dataset = GeneticDataset(processed)
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
