@@ -4,7 +4,7 @@ import torch
 import numpy as np 
 from easydict import EasyDict
 
-unsqueeze3x = lambda x: x[..., None, None, None]
+unsqueeze3x = lambda x: x[..., None, None]
 class GuassianDiffusion:
     """Gaussian diffusion process with 1) Cosine schedule for beta values (https://arxiv.org/abs/2102.09672)
     2) L_simple training objective from https://arxiv.org/abs/2006.11239.
@@ -24,20 +24,20 @@ class GuassianDiffusion:
         self.get_x0_from_xt_eps = lambda xt, eps, t, scalars: (
             self.clamp_x0(
                 1
-                / scalars.alpha_bar[t].sqrt().unsqueeze(-1).unsqueeze(-1)
-                * (xt - (1 - scalars.alpha_bar[t]).sqrt().unsqueeze(-1).unsqueeze(-1) * eps)
+                / unsqueeze3x(scalars.alpha_bar[t].sqrt())
+                * (xt - unsqueeze3x((1 - scalars.alpha_bar[t]).sqrt()) * eps)
             )
         )
         self.get_pred_mean_from_x0_xt = (
-            lambda xt, x0, t, scalars: (
+            lambda xt, x0, t, scalars: unsqueeze3x(
                 (scalars.alpha_bar[t].sqrt() * scalars.beta[t])
                 / ((1 - scalars.alpha_bar[t]) * scalars.alpha[t].sqrt())
-            ).unsqueeze(-1).unsqueeze(-1)
+            )
             * x0
-            + (
+            + unsqueeze3x(
                 (scalars.alpha[t] - scalars.alpha_bar[t])
                 / ((1 - scalars.alpha_bar[t]) * scalars.alpha[t].sqrt())
-            ).unsqueeze(-1).unsqueeze(-1)
+            )
             * xt
         )
 
@@ -81,12 +81,11 @@ class GuassianDiffusion:
         Note that we will use this paritcular realization of noise vector (eps) in training.
         """
         eps = torch.randn_like(x0)
-      #  print(eps[0])
-      #  print(x0.shape)
-      #  print(self.scalars.alpha_bar[t].sqrt().unsqueeze(-1))
-        xt = self.scalars.alpha_bar[t].sqrt().unsqueeze(-1).unsqueeze(-1) * x0 + (1 - self.scalars.alpha_bar[t]).sqrt().unsqueeze(-1).unsqueeze(-1)* eps
-        
-        return xt.float(), eps 
+        xt = (
+            unsqueeze3x(self.scalars.alpha_bar[t].sqrt()) * x0
+            + unsqueeze3x((1 - self.scalars.alpha_bar[t]).sqrt()) * eps
+        )
+        return xt.float(), eps
 
     def reverse_forward_process_simple(self, xt, t ,eps):
         """Simple backward stack of the forward process, where we remove noise in the image.
@@ -112,48 +111,45 @@ class GuassianDiffusion:
         final = xT
 
         # sub-sampling timesteps for faster sampling
-        timesteps = timesteps or self.timesteps
-        new_timesteps = np.linspace(
-            0, self.timesteps - 1, num=timesteps, endpoint=True, dtype=int
-        )
-        alpha_bar = self.scalars["alpha_bar"][new_timesteps]
-        new_betas = 1 - (
-            alpha_bar / torch.nn.functional.pad(alpha_bar, [1, 0], value=1.0)[:-1]
-        )
-        scalars = self.get_all_scalars(
-            self.alpha_bar_scheduler, timesteps, self.device, new_betas
-        )
+        # timesteps = timesteps or self.timesteps
+        # new_timesteps = np.linspace(
+        #     0, self.timesteps - 1, num=timesteps, endpoint=True, dtype=int
+        # )
+        # alpha_bar = self.scalars["alpha_bar"][new_timesteps]
+        # new_betas = 1 - (
+        #     alpha_bar / torch.nn.functional.pad(alpha_bar, [1, 0], value=1.0)[:-1]
+        # )
+        # scalars = self.get_all_scalars(
+        #     self.alpha_bar_scheduler, timesteps, self.device, new_betas
+        # )
 
-        for i, t in zip(np.arange(timesteps)[::-1], new_timesteps[::-1]):
+        for t in range(timesteps , 0, -1):
+            print(f'sampling timestep {t:3d}', end='\r')
             with torch.no_grad():
                 current_t = torch.tensor([t] * len(final), device=final.device)
-                current_sub_t = torch.tensor([i] * len(final), device=final.device)
-               # print(final.shape)
                 pred_epsilon = model(final, current_t, **model_kwargs)
                 # using xt+x0 to derive mu_t, instead of using xt+eps (former is more stable)
                 pred_x0 = self.get_x0_from_xt_eps(
-                    final, pred_epsilon, current_sub_t, scalars
+                    final, pred_epsilon, current_t, self.scalars
                 )
-             #   print(pred_x0.shape)
                 pred_mean = self.get_pred_mean_from_x0_xt(
-                    final, pred_x0, current_sub_t, scalars
+                    final, pred_x0, current_t, self.scalars
                 )
-              #  print(pred_mean.shape)
-                if i == 0:
+                if t == 0:
                     final = pred_mean
                 else:
                     if ddim:
                         final = (
-                            unsqueeze3x(scalars["alpha_bar"][current_sub_t - 1]).sqrt()
+                            unsqueeze3x(self.scalars["alpha_bar"][current_t - 1]).sqrt()
                             * pred_x0
                             + (
-                                1 - unsqueeze3x(scalars["alpha_bar"][current_sub_t - 1])
+                                1 - unsqueeze3x(self.scalars["alpha_bar"][current_t - 1])
                             ).sqrt()
                             * pred_epsilon
                         )
                     else:
-                        final = pred_mean + (
-                            scalars.beta_tilde[current_sub_t].sqrt()
-                        ).unsqueeze(-1).unsqueeze(-1) * torch.randn_like(final)
+                        final = pred_mean + unsqueeze3x(
+                            self.scalars.beta_tilde[current_t].sqrt()
+                        ) * torch.randn_like(final)
                 final = final.detach()
         return final

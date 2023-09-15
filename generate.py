@@ -1,24 +1,47 @@
 import torch
 from diffusion_Process import GuassianDiffusion
+from unets import UNet
+from data import *
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
+import numpy as np
+import pickle
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-steps = 50
-gene_count = 18279
-batchsize = 1
+max_steps = 500
+gene_size = 18432
+num_classes = 2
+batch_size  = 8
+num_channels = 8
+
+@torch.no_grad()
+def generate_sample(model,num_samples = 10000, save = True):
+   
+   for i in range(2,num_samples):
+      xt = torch.randn_like(torch.zeros(batch_size,num_channels,gene_size)).to(device)
+      label = torch.randint(num_classes, (batch_size,), dtype=torch.int64).to(device)
+      sample = diffusion.sample_from_reverse_process(model,xt, timesteps=max_steps-1,model_kwargs={"y":label})
+      if save:
+         #save label and sample as single file with pickle
+         for a in range(batch_size):
+            torch.save((sample[a].cpu().detach(),  label[a].cpu().detach()), "syn_data/sample"+str(i*batch_size + a)+".pt")
+            # with open("syn_data/sample"+str(i*batch_size + a)+".pkl", "wb") as f:
+            #    pickle.dump((sample[a].cpu().detach(), label[a]), f)
+   return sample
 
 if __name__ == '__main__':
-    diffusion = GuassianDiffusion(device =  device)
-    model = torch.load("modelcondfull.pt")
-    model = model.to(device)
+   # diffusion = diffusion_process(steps, img_size, img_size)
+   diffusion = GuassianDiffusion(timesteps=max_steps)
+   model = torch.load("modelbestmodel.pt")
+   model = model.to(device)
+   model.eval()
+   generate_sample(model, num_samples = 10000, save = True)
+   # xt = torch.randn_like(torch.zeros(1,3,32,32)).to(device)
+   # label = torch.LongTensor([8]).to(device)
+   
+   # sample = diffusion.sample_from_reverse_process(model,xt, timesteps=max_steps-1,model_kwargs={"y":label})
 
-    for i in range(35,10000):
-        print("sample: " + str(i))
-        xt = torch.randn(batchsize,8,gene_count)
-        xt = F.pad(xt, (0, 18432 - xt.shape[2]), "constant", 0).to(device)
-       # print(xt.shape)
-        y = torch.randint(0,2,(batchsize,)).to(device)
-        samples = diffusion.sample_from_reverse_process(model,xt, steps, model_kwargs= {"y":y})[0].cpu().detach()
-        torch.save((samples,y), "syn_data/sample"+str(i)+".pt")
-        
+ 
+
+
+ 

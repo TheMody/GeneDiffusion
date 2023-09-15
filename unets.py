@@ -607,6 +607,8 @@ class UNetModel(nn.Module):
 
         self.output_blocks = nn.ModuleList([])
         for level, mult in list(enumerate(channel_mult))[::-1]:
+          #  print(ds)
+          #  print(model_channels * mult)
             for i in range(num_res_blocks + 1):
                 ich = input_block_chans.pop()
                 layers = [
@@ -665,28 +667,30 @@ class UNetModel(nn.Module):
         :param y: an [N] Tensor of labels, if class-conditional.
         :return: an [N x C x ...] Tensor of outputs.
         """
-
+      #  print("input",x.shape)
         assert (y is not None) == (
             self.num_classes is not None
         ), "must specify y if and only if the model is class-conditional"
 
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
-      #  print(emb.shape)
+     #   print("emb",emb.shape)
         if self.num_classes is not None:
             assert y.shape == (x.shape[0],)
             emb = emb + self.label_emb(y)
+     #   print("x", x.shape)
         h = x.type(self.dtype)
+      #  print("h", h.shape)
         for module in self.input_blocks:
             h = module(h, emb)
-        #    print("h", h.shape)
+         #   print("h", h.shape)
             hs.append(h)
         h = self.middle_block(h, emb)
-      #  print("h", h.shape)
+       # print("h", h.shape)
         for module in self.output_blocks:
             h = th.cat([h, hs.pop()], dim=1)
             h = module(h, emb)
-        #    print("h", h.shape)
+          #  print("h", h.shape)
         h = h.type(x.dtype)
         return self.out(h)
 
@@ -746,24 +750,15 @@ def UNet1d(
 ):
     # if image_size == 256:
     #     channel_mult = (1, 1, 1, 2, 3, 4)
-    if image_size == 128:
-        channel_mult = (1, 1, 2, 3, 4)
-    elif image_size == 64:
-        channel_mult = (1, 2, 3, 4)
-    elif image_size == 32:
-        channel_mult = (1, 2, 2, 2)
-    elif image_size == 28:
-        channel_mult = (1, 2, 2, 2)
-    else:
-        raise ValueError(f"unsupported image size: {image_size}")
+
+    channel_mult = (1, 1, 2, 2,2,3)
+
 
     attention_ds = []
-    if image_size == 28:
-        attention_resolutions = "28,14,7"
-    else:
-        attention_resolutions = "32,16,8"
+
+    attention_resolutions = "32"
     for res in attention_resolutions.split(","):
-        attention_ds.append(image_size // int(res))
+        attention_ds.append(int(res))
 
     return UNetModel(
         image_size=image_size,
