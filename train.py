@@ -23,7 +23,7 @@ if __name__ == '__main__':
    # diffusion = diffusion_process(max_steps, 32, 32)
     diffusion = GuassianDiffusion(500)
   #  model = Unet2D(3,3, hidden_dim=[64,128,256,512], c_emb_dim=num_classes).to(device)
-    model = torch.load("modellarge.pt")
+  #  model = torch.load("modellarge.pt")
     model = UNet1d(32,in_channels=8, out_channels=8 ,num_classes=num_classes).to(device)
   #  model = UnetMLP(num_channels,num_channels, c_emb_dim=num_classes).to(device)
     critertion = torch.nn.MSELoss()
