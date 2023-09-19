@@ -10,8 +10,8 @@ from utils import *
 from generate import generate_sample
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batchsize = 4
-gradient_accumulation_steps = 8
+batchsize = 8
+gradient_accumulation_steps = 4
 epochs = 100
 max_steps = 500
 num_classes = 2
@@ -23,10 +23,11 @@ if __name__ == '__main__':
    # diffusion = diffusion_process(max_steps, 32, 32)
     diffusion = GuassianDiffusion(500)
   #  model = Unet2D(3,3, hidden_dim=[64,128,256,512], c_emb_dim=num_classes).to(device)
+    model = torch.load("modellarge.pt")
     model = UNet1d(32,in_channels=8, out_channels=8 ,num_classes=num_classes).to(device)
   #  model = UnetMLP(num_channels,num_channels, c_emb_dim=num_classes).to(device)
     critertion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=5e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=2e-4) #larger models need smaller steps
  #   optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
   #  lrs = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.5)
     lrs = CosineWarmupScheduler(optimizer, warmup=100, max_iters=epochs*len(dataloader))
@@ -63,7 +64,7 @@ if __name__ == '__main__':
                 avgloss = 0
                 avglosssteps = 0
             log_dict = {"loss": accloss}
-          #  print(accloss)
+            print(accloss)
             if lrs is not None:
                 lrs.step()
                 log_dict["lr"] = lrs.get_last_lr()[0]

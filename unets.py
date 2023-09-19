@@ -192,6 +192,7 @@ class Upsample(nn.Module):
         self.channels = channels
         self.out_channels = out_channels or channels
         self.use_conv = use_conv
+        self.up_conv =  nn.ConvTranspose1d(channels, self.out_channels , kernel_size=2, stride=2)
         self.dims = dims
         if use_conv:
             self.conv = conv_nd(dims, self.channels, self.out_channels, 3, padding=1)
@@ -203,7 +204,8 @@ class Upsample(nn.Module):
                 x, (x.shape[2], x.shape[3] * 2, x.shape[4] * 2), mode="nearest"
             )
         else:
-            out = F.interpolate(x, scale_factor=2, mode="nearest")
+            out = self.up_conv(x)
+           # out = F.interpolate(x, scale_factor=2, mode="nearest")
         if x.shape[-1] == x.shape[-2] == 3:
             # upsampling layer transform [3x3] to [6x6]. Manually paddding it to make [7x7]
             out = F.pad(out, (1, 0, 1, 0))
@@ -608,7 +610,7 @@ class UNetModel(nn.Module):
         self.output_blocks = nn.ModuleList([])
         for level, mult in list(enumerate(channel_mult))[::-1]:
           #  print(ds)
-          #  print(model_channels * mult)
+         #   print(model_channels * mult)
             for i in range(num_res_blocks + 1):
                 ich = input_block_chans.pop()
                 layers = [
@@ -683,11 +685,13 @@ class UNetModel(nn.Module):
       #  print("h", h.shape)
         for module in self.input_blocks:
             h = module(h, emb)
-         #   print("h", h.shape)
+        #    print("h", h.shape)
             hs.append(h)
         h = self.middle_block(h, emb)
        # print("h", h.shape)
         for module in self.output_blocks:
+         #   print(h.shape)
+         #   print(hs[-1].shape)
             h = th.cat([h, hs.pop()], dim=1)
             h = module(h, emb)
           #  print("h", h.shape)
@@ -745,18 +749,18 @@ def UNet1d(
     image_size,
     in_channels=3,
     out_channels=3,
-    base_width=192,
+    base_width=64,
     num_classes=None,
 ):
     # if image_size == 256:
     #     channel_mult = (1, 1, 1, 2, 3, 4)
 
-    channel_mult = (1, 1, 2, 2,2,2,3)
+    channel_mult = (1,1,1,1,2,2,2,4,4,4,8,16)
 
 
     attention_ds = []
 
-    attention_resolutions = "32,64"
+    attention_resolutions = "256,512,2048"
     for res in attention_resolutions.split(","):
         attention_ds.append(int(res))
 
