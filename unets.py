@@ -204,8 +204,8 @@ class Upsample(nn.Module):
                 x, (x.shape[2], x.shape[3] * 2, x.shape[4] * 2), mode="nearest"
             )
         else:
-            out = self.up_conv(x)
-           # out = F.interpolate(x, scale_factor=2, mode="nearest")
+           # out = self.up_conv(x)
+            out = F.interpolate(x, scale_factor=2, mode="nearest")
         if x.shape[-1] == x.shape[-2] == 3:
             # upsampling layer transform [3x3] to [6x6]. Manually paddding it to make [7x7]
             out = F.pad(out, (1, 0, 1, 0))
@@ -756,11 +756,13 @@ def UNet1d(
     #     channel_mult = (1, 1, 1, 2, 3, 4)
 
     channel_mult = (1,1,1,1,2,2,2,4,4,4,8,16)
+    attention_resolutions = "256,512,2048"
 
+    channel_mult = (1,1,1,1,2,2,3,4)
+    attention_resolutions = "32,64"
 
     attention_ds = []
 
-    attention_resolutions = "256,512,2048"
     for res in attention_resolutions.split(","):
         attention_ds.append(int(res))
 
