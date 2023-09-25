@@ -10,8 +10,8 @@ from utils import *
 from generate import generate_sample
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batchsize = 8
-gradient_accumulation_steps = 4
+batchsize = 16
+gradient_accumulation_steps = 2
 epochs = 100
 max_steps = 500
 num_classes = 2
