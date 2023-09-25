@@ -21,11 +21,11 @@ def train_classifier():
    
     train_dataloader = DataLoader(geneticData, batch_size=batch_size)
     _,test_dataloader = GeneticDataloaders(batch_size)
-    scheduler = CosineWarmupScheduler(optimizer, warmup=10, max_iters=int(len(train_dataloader)*epochs))
+    scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
     running_loss = 0.0
     best_acc = 0.0
-    for epoch in range(epochs):
+    for epoch in range(epochs_classifier):
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 optimizer.zero_grad()
                 inputs, labels = next(iter(train_dataloader))
