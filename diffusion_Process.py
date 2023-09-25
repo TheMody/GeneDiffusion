@@ -93,7 +93,7 @@ class GuassianDiffusion:
         return (xt -(1 - self.scalars.alpha_bar[t]).sqrt() * eps) / self.scalars.alpha_bar[t].sqrt()
 
     def sample_from_reverse_process(
-        self, model, xT, timesteps=None, model_kwargs={}, ddim=False
+        self, model, xT, timesteps=None, y = None, ddim=False, guidance= "normal", w = 3.0
     ):
         """Sampling images by iterating over all timesteps.
 
@@ -127,7 +127,12 @@ class GuassianDiffusion:
             print(f'sampling timestep {t:3d}', end='\r')
             with torch.no_grad():
                 current_t = torch.tensor([t] * len(final), device=final.device)
-                pred_epsilon = model(final, current_t, **model_kwargs)
+                if guidance == "normal":
+                    pred_epsilon = model(final, current_t,y)
+                else:
+                    pred_epsilon_conditional = model(final, current_t,y)
+                    pred_epsilon_unconditional = model(final, current_t, torch.zeros_like(y))
+                    pred_epsilon = (1+w)*pred_epsilon_conditional - w*pred_epsilon_unconditional
                 # using xt+x0 to derive mu_t, instead of using xt+eps (former is more stable)
                 pred_x0 = self.get_x0_from_xt_eps(
                     final, pred_epsilon, current_t, self.scalars
