@@ -65,7 +65,7 @@ def processes_data():
 
 
 class SynGeneticDataset(Dataset):
-    def __init__(self, path = "syn_data/"):
+    def __init__(self, path = save_path+"/"):
         self.path = path
         self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt"]
         print("len of syn dataset", len(self.all_file_paths))
