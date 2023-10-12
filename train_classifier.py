@@ -10,7 +10,7 @@ from config import *
 
 def train_classifier():
     #basic building blocks
-    model = MLPModel(num_input=num_channels*gene_size)
+    model = MLPModel(num_input=num_channels*gene_size)#75584)#
 
     model = model.to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=lr_classifier)
@@ -18,9 +18,8 @@ def train_classifier():
     wandb.init(project="disease_prediction_syn", config=config)
     #data
     geneticData = SynGeneticDataset()
-   
     train_dataloader = DataLoader(geneticData, batch_size=config["batch_size"])
-    _,test_dataloader = GeneticDataloaders(config["batch_size"])
+    _,test_dataloader = GeneticDataloaders(config["batch_size"], True)
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
     running_loss = 0.0
@@ -32,13 +31,14 @@ def train_classifier():
                 accacc = 0.0
                 for micro_step in range(gradient_accumulation_steps):
                     inputs, labels = next(iter(train_dataloader))
-                    inputs = inputs.to(device)
+                    inputs = inputs.float().to(device)
                     labels = labels.to(device)
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
                     with torch.no_grad():
-                        accacc += torch.sum(torch.argmax(outputs, axis = 1) == torch.argmax(labels, axis = 1))/labels.shape[0]
+                      #  accacc += torch.sum(torch.argmax(outputs, axis = 1) == torch.argmax(labels, axis = 1))/labels.shape[0]
+                        accacc += torch.sum(torch.argmax(outputs, axis = 1) ==labels)/labels.shape[0]
                         accloss += loss.item()
 
                     loss.backward()
@@ -68,8 +68,7 @@ def train_classifier():
             accummulated_loss = 0.0
             for i, data in enumerate(test_dataloader):
                 inputs, labels = data
-                inputs = inputs.permute(0,2,1).float().to(device)
-         #       print(inputs.dtype)
+                inputs = inputs.float().to(device)
                 labels = labels.to(device)
                 outputs = model(inputs)
                 loss = loss_fn(outputs, labels)

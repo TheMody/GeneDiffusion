@@ -12,7 +12,7 @@ def generate_sample(model,num_samples = 10000, save = True, savefolder = save_pa
       sample = diffusion.sample_from_reverse_process(model,xt, timesteps=max_steps-1,y= label, guidance = "c_free", w = 0.1)
       if save:
          for a in range(config["batch_size"]):
-            torch.save((sample[a].cpu().detach(),  label[a].cpu().detach()), savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
+            torch.save((sample[a].cpu().detach(),  torch.argmax(label[a].cpu().detach())), savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
    return sample
 
 if __name__ == '__main__':

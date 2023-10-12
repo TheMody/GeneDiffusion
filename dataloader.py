@@ -16,10 +16,59 @@ def load_data(processed = True):
 
     return np.asarray(dataset_X), np.asarray(Y)
 
+def processes_data():
+    ds,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
+    names = list(ds.columns.values)
+   # print(names)
+    for i in range(len(names)):
+        split  = names[i].split(":")
+        names[i] = split[0]+":"+split[1]
+   # print(names)
+
+    n_unique, countunique = np.unique(names, return_counts=True)
+   # print(len(n_unique))
+   # print(countunique)
+    max_length = np.max(countunique)
+   # print(max_length)
+    tokenized_ds = []
+    for i in tqdm(range(len(ds))):
+        datapoint = np.asanyarray(ds.iloc[i,:].values)
+       # print(datapoint)
+      #  print(datapoint.shape)
+        tokens = []
+        last_name = names[0]
+        token = np.zeros(max_length)
+        pos_int_token = 0
+        for a,value in enumerate(datapoint):
+            if not last_name == names[a]:
+                tokens.append(token)
+                last_name = names[a]
+                pos_int_token = 0
+                token = np.zeros(max_length)
+            token[pos_int_token] = value
+            pos_int_token += 1
+        tokens.append(token)
+       # print(len(tokens))
+        datapoint = np.asarray(tokens)
+      #  print(datapoint.shape)
+        #print(datapoint.shape)
+        tokenized_ds.append(datapoint)
+    # break
+
+    tokenized_ds = np.asarray(tokenized_ds)
+    print(tokenized_ds.shape)
+    fileObject = open("data/processed_ds", 'wb')
+    pickle.dump(tokenized_ds,fileObject )
+    fileObject.close()
+    # for column in dataset_X:
+    #     print(column)
+
+
 class SynGeneticDataset(Dataset):
     def __init__(self, path = "syn_data/"):
         self.path = path
         self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt"]
+        print("len of syn dataset", len(self.all_file_paths))
         # for file in os.listdir(self.path):
         #     self.x,self.y = torch.load(open(file,"rb"))
 
@@ -69,81 +118,4 @@ def GeneticDataloaders(batchsize, processed = True):
     return train_dataloader,test_dataloader
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def preprocess_data():
-    ds = load_data()
-    names = list(ds.columns.values)
-    for i in range(len(names)):
-        split  = names[i].split(":")
-        names[i] = split[0]+":"+split[1]
-
-    _, countunique = np.unique(names, return_counts=True)
-
-    max_length = np.max(countunique)
-    print(max_length)
-    tokenized_ds = []
-    for i in tqdm(range(len(ds))):
-        datapoint = np.asanyarray(ds.iloc[i,:].values)
-        tokens = []
-        current = 0
-        for count in countunique:
-            token = np.zeros(max_length)
-            token[:count] = datapoint[current:current+count]
-            tokens.append(token)
-            current += count
-        datapoint = np.asarray(tokens)
-        tokenized_ds.append(datapoint)
-    # break
-
-    tokenized_ds = np.asarray(tokenized_ds)
-    print(tokenized_ds.shape)
-    fileObject = open("data/processed_ds", 'wb')
-    pickle.dump(tokenized_ds,fileObject )
-    fileObject.close()
-
-#preprocess_data()
-
-def load_processed_data():
-    fileObject = open("data/processed_ds", 'rb')
-    ds = pickle.load(fileObject)
-    fileObject.close()
-    ds = ds.astype(np.float32)
-    _,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
-    return ds,Y
-
-
-
-#ds = load_processed_data()
-
-class GeneticDatasetpreprocessed(Dataset):
-    def __init__(self):
-        self.x,self.y = load_processed_data()
-     #   self.x = self.x[:int(0.1*len(self.x))]
-     #   self.y = self.y[:int(0.1*len(self.y))]
-        #now we shuffle x and y
-        np.random.seed(42)
-        p = np.random.permutation(len(self.x))
-        self.x = self.x[p]
-        self.y = self.y[p]
-
-    def __len__(self):
-        return len(self.x)
-
-    def __getitem__(self, idx):
-        genome = self.x[idx]
-        label = self.y[idx]
-        return genome, label
+#processes_data()
