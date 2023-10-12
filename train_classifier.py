@@ -6,36 +6,27 @@ import wandb
 from cosine_scheduler import CosineWarmupScheduler
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from sklearn.model_selection import train_test_split
+from config import *
 
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-
-if __name__ == "__main__":
-    epochs = 100
-    batch_size = 8
-    gradient_accumulation_steps = 1
-    l1_lambda = 1e-5
-
+def train_classifier():
     #basic building blocks
-    model = MLPModel(num_input=18432*8)
+    model = MLPModel(num_input=num_channels*gene_size)
 
     model = model.to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001)#torch.optim.Adam(model.parameters(), lr=0.001)#
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr_classifier)
     loss_fn = torch.nn.CrossEntropyLoss()
-    wandb.init(project="disease_prediction_syn")
-
+    wandb.init(project="disease_prediction_syn", config=config)
     #data
     geneticData = SynGeneticDataset()
    
     train_dataloader = DataLoader(geneticData, batch_size=batch_size)
     _,test_dataloader = GeneticDataloaders(batch_size)
-    scheduler = CosineWarmupScheduler(optimizer, warmup=10, max_iters=int(len(train_dataloader)*epochs))
+    scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
     running_loss = 0.0
     best_acc = 0.0
-    for epoch in range(epochs):
-        for i in range(int(len(train_dataloader) / gradient_accumulation_steps)):
+    for epoch in range(epochs_classifier):
+        for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 optimizer.zero_grad()
                 inputs, labels = next(iter(train_dataloader))
                 #put data to device
@@ -103,3 +94,7 @@ if __name__ == "__main__":
             best_acc = avg_acc
             torch.save(model.state_dict(), "classification_models/model"+ str(best_acc) +".pt")
             print(f"saved new best model with acc {best_acc}")
+
+
+if __name__ == "__main__":
+    train_classifier()

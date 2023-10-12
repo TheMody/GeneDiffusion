@@ -471,7 +471,6 @@ class UNetModel(nn.Module):
 
     def __init__(
         self,
-        image_size,
         in_channels,
         model_channels,
         out_channels,
@@ -746,7 +745,6 @@ def UNetBig(
     )
 
 def UNet1d(
-    image_size,
     in_channels=3,
     out_channels=3,
     base_width=192,
@@ -767,7 +765,6 @@ def UNet1d(
         attention_ds.append(int(res))
 
     return UNetModel(
-        image_size=image_size,
         in_channels=in_channels,
         model_channels=base_width,
         out_channels=out_channels,

@@ -16,8 +16,8 @@ def load_data(processed = True):
     return np.asarray(dataset_X), np.asarray(Y)
 
 class SynGeneticDataset(Dataset):
-    def __init__(self):
-        self.path = "syn_data/"
+    def __init__(self, path = "syn_data/"):
+        self.path = path
         self.all_file_paths = [self.path + file for file in os.listdir(self.path)]
         # for file in os.listdir(self.path):
         #     self.x,self.y = torch.load(open(file,"rb"))
