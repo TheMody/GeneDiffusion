@@ -19,8 +19,8 @@ def train_classifier():
     #data
     geneticData = SynGeneticDataset()
    
-    train_dataloader = DataLoader(geneticData, batch_size=batch_size)
-    _,test_dataloader = GeneticDataloaders(batch_size)
+    train_dataloader = DataLoader(geneticData, batch_size=config["batch_size"])
+    _,test_dataloader = GeneticDataloaders(config["batch_size"])
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
     running_loss = 0.0
@@ -28,29 +28,19 @@ def train_classifier():
     for epoch in range(epochs_classifier):
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 optimizer.zero_grad()
-                inputs, labels = next(iter(train_dataloader))
-                #put data to device
-              #  print(inputs.dtype)
-                inputs = inputs.to(device)
-                labels = labels.to(device)
                 accloss = 0.0
                 accacc = 0.0
-                # forward backward update, with optional gradient accumulation to simulate larger batch size
-                # and using the GradScaler if data type is float16
                 for micro_step in range(gradient_accumulation_steps):
+                    inputs, labels = next(iter(train_dataloader))
+                    inputs = inputs.to(device)
+                    labels = labels.to(device)
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
-                    # immediately async prefetch next batch while model is doing the forward pass on the GPU
                     with torch.no_grad():
                         accacc += torch.sum(torch.argmax(outputs, axis = 1) == torch.argmax(labels, axis = 1))/labels.shape[0]
                         accloss += loss.item()
 
-                    inputs, labels = next(iter(train_dataloader))
-                    #put data to device
-                    inputs = inputs.to(device)
-                    labels = labels.to(device)
-                    # backward pass, with gradient scaling if training in fp16
                     loss.backward()
                     
                 acc = accacc/gradient_accumulation_steps
