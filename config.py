@@ -1,7 +1,7 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 2
+batch_size = 4
 gradient_accumulation_steps = 8
 epochs = 100
 epochs_classifier = 50
