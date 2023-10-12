@@ -5,6 +5,7 @@ from torch.utils.data import Dataset
 import torch
 import torch.nn.functional as F
 import os
+from config import *
 
 def load_data(processed = True):
     print("Loading data...")
@@ -18,7 +19,7 @@ def load_data(processed = True):
 class SynGeneticDataset(Dataset):
     def __init__(self, path = "syn_data/"):
         self.path = path
-        self.all_file_paths = [self.path + file for file in os.listdir(self.path)]
+        self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt"]
         # for file in os.listdir(self.path):
         #     self.x,self.y = torch.load(open(file,"rb"))
 
@@ -31,11 +32,13 @@ class SynGeneticDataset(Dataset):
         return genome, label.float()
 
 class GeneticDataset(Dataset):
-    def __init__(self, processed = True):
+    def __init__(self, processed = True, normalize = normalize_data):
         self.x,self.y = load_data(processed = processed)
+        if normalize:
+            xstd = np.std(self.x,axis=0)
+            xstd[xstd == 0.0] +=1
+            self.x = (self.x-np.mean(self.x,axis=0)) / xstd
         self.processed = processed
-     #   self.x = self.x[:int(0.1*len(self.x))]
-     #   self.y = self.y[:int(0.1*len(self.y))]
         #now we shuffle x and y
         np.random.seed(42)
         p = np.random.permutation(len(self.x))

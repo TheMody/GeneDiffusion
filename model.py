@@ -2,7 +2,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import math
-from unets import UNet1d
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -227,7 +226,7 @@ class MultichannelLinear(nn.Module): #maybe this is missing the bias term
         self.weight_pw = nn.Parameter(torch.empty(int(math.ceil(channels/down_project)), out_features, in_features*down_project))
         self.weight_bias = nn.Parameter(torch.empty(int(math.ceil(channels/down_project)), out_features))
         nn.init.uniform_(self.weight_pw, a=-1/math.sqrt(in_features*down_project), b=1/math.sqrt(in_features*down_project))
-        nn.init.uniform_(self.weight_pw, a=-1/math.sqrt(in_features*down_project), b=1/math.sqrt(in_features*down_project))
+        nn.init.uniform_(self.weight_bias, a=-1/math.sqrt(in_features*down_project), b=1/math.sqrt(in_features*down_project))
 
     def __call__(self, x):
         if not self.down_project ==1:   

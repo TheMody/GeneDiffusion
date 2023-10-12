@@ -6,6 +6,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
+from model import MultichannelLinear
 
 
 class GroupNorm32(nn.GroupNorm):
@@ -520,6 +521,8 @@ class UNetModel(nn.Module):
         if self.num_classes is not None:
             self.label_emb = nn.Embedding(num_classes, time_embed_dim)
 
+
+
         ch = input_ch = int(channel_mult[0] * model_channels)
         self.input_blocks = nn.ModuleList(
             [TimestepEmbedSequential(conv_nd(dims, in_channels, ch, 3, padding=1))]
@@ -744,10 +747,109 @@ def UNetBig(
         use_new_attention_order=True,
     )
 
+class PosSensitiveUnet(nn.Module):
+    def __init__(self,sequence_length, 
+                in_channels=3,
+                out_channels=3,
+                base_width=64,
+                num_classes=None) -> None:
+        super().__init__()
+
+        channel_mult = (1,1,1,1,2,2,3,4)
+        attention_resolutions = "32,64"
+
+        attention_ds = []
+
+        for res in attention_resolutions.split(","):
+            attention_ds.append(int(res))
+
+        self.Unet = UNetModel(
+            in_channels=base_width,
+            model_channels=base_width,
+            out_channels=base_width,
+            num_res_blocks=3,
+            attention_resolutions=tuple(attention_ds),
+            dropout=0.1,
+            channel_mult=channel_mult,
+            num_classes=num_classes,
+            use_checkpoint=False,
+            use_fp16=False,
+            num_heads=4,
+            dims = 1,
+            num_head_channels=64,
+            num_heads_upsample=-1,
+            use_scale_shift_norm=True,
+            resblock_updown=True,
+            use_new_attention_order=True,
+            )
+        self.input_layer = MultichannelLinear(sequence_length, in_channels, base_width)
+        self.output_layer = MultichannelLinear(sequence_length, base_width , out_channels)
+
+    def forward(self,x, timesteps, y=None):
+      #  print(x.shape)
+        x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
+        x = self.Unet(x, timesteps,y)
+        x = self.output_layer(x.permute(0,2,1)).permute(0,2,1)
+        return x
+
+class PosSensitiveUnetDeep(nn.Module):
+    def __init__(self,sequence_length, 
+                in_channels=3,
+                out_channels=3,
+                base_width=64,
+                num_classes=None) -> None:
+        super().__init__()
+
+        channel_mult = (1,1,1,1,2,2,3,4)
+        attention_resolutions = "32,64"
+
+        attention_ds = []
+
+        for res in attention_resolutions.split(","):
+            attention_ds.append(int(res))
+
+        self.Unet = UNetModel(
+            in_channels=base_width,
+            model_channels=base_width,
+            out_channels=base_width,
+            num_res_blocks=3,
+            attention_resolutions=tuple(attention_ds),
+            dropout=0.1,
+            channel_mult=channel_mult,
+            num_classes=num_classes,
+            use_checkpoint=False,
+            use_fp16=False,
+            num_heads=4,
+            dims = 1,
+            num_head_channels=64,
+            num_heads_upsample=-1,
+            use_scale_shift_norm=True,
+            resblock_updown=True,
+            use_new_attention_order=True,
+            )
+        self.input_layer = MultichannelLinear(sequence_length, in_channels, base_width)
+        self.input_layer_2 = MultichannelLinear(sequence_length, base_width, base_width)
+        self.input_layer_3 = MultichannelLinear(sequence_length, base_width, base_width)
+        self.output_layer_2 = MultichannelLinear(sequence_length, base_width , base_width)
+        self.output_layer_3 = MultichannelLinear(sequence_length, base_width , base_width)
+        self.output_layer = MultichannelLinear(sequence_length, base_width , out_channels)
+
+    def forward(self,x, timesteps, y=None):
+      #  print(x.shape)
+        x_skip = self.input_layer(x.permute(0,2,1))
+        x = F.silu(self.input_layer_2(x_skip))
+        x = (x_skip + F.silu(self.input_layer_3(x))).permute(0,2,1)
+        x_skip = self.Unet(x, timesteps,y).permute(0,2,1)
+        x = F.silu(self.output_layer_3(x_skip))
+        x = F.silu(self.output_layer_2(x))
+        x = self.output_layer(x + x_skip).permute(0,2,1)
+        return x
+
+
 def UNet1d(
     in_channels=3,
     out_channels=3,
-    base_width=192,
+    base_width=64,
     num_classes=None,
 ):
     # if image_size == 256:

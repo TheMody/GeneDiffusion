@@ -1,7 +1,7 @@
 
 import torch
 from diffusion_Process import GuassianDiffusion
-from unets import UNet, UNet1d
+from unets import UNet, UNet1d, PosSensitiveUnet, PosSensitiveUnetDeep
 from model import  Unet2D, UnetMLP
 from dataloader import *
 import wandb
@@ -13,17 +13,30 @@ from train_classifier import train_classifier
 
 if __name__ == '__main__':
     wandb.init(project="diffusionGene", config = config)
-    dataloader,valdataloader = GeneticDataloaders(batch_size, True)
+    dataloader,valdataloader = GeneticDataloaders(config["batch_size"], True)
    # diffusion = diffusion_process(max_steps, 32, 32)
     diffusion = GuassianDiffusion(max_steps)
   #  model = Unet2D(3,3, hidden_dim=[64,128,256,512], c_emb_dim=num_classes).to(device)
   #  model = torch.load("modellarge.pt")
-    model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1).to(device)
+    if model_name == "Unet":
+        model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1).to(device)
+    if model_name == "UnetLarge":
+        model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=192).to(device)
+    if model_name == "PosSensitive":
+        model = PosSensitiveUnet(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1).to(device)
+    if model_name == "PosSensitiveLarge":
+        model = PosSensitiveUnet(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=192).to(device)
+    if model_name == "PosSensitiveDeep":
+        model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=64).to(device)
   #  model = UnetMLP(num_channels,num_channels, c_emb_dim=num_classes).to(device)
     critertion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr_diffusion)
  #   optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
     lrs = CosineWarmupScheduler(optimizer, warmup=100, max_iters=epochs*len(dataloader)//gradient_accumulation_steps)
+
+
+    if not os.path.isdir(save_path):
+        os.mkdir(save_path)
     minloss = 1
     ema_time = 0.0
     for e in range(epochs):
@@ -98,10 +111,10 @@ if __name__ == '__main__':
             if avgloss/avglosssteps < minloss:
                 minloss = avgloss/avglosssteps
                 print("saving model at epoch: "  + str(e) +" ,with loss: "+ str(avgloss/avglosssteps) )
-                torch.save(model, "model.pt")
+                torch.save(model, save_path+"/"+"model.pt")
     wandb.finish()
-    model = torch.load("model.pt").to(device)
+    model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()
-    generate_sample(model, num_of_samples, savefolder="syn_data")
+    generate_sample(model, num_of_samples, savefolder=save_path)
     train_classifier()
 
