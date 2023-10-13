@@ -13,7 +13,7 @@ lr_classifier = 1e-3
 lr_diffusion = 2e-4
 num_of_samples = 10
 normalize_data = False
-model_name =  "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,
+model_name = "PosSensitiveDeep"# "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,
 save_path = "syn_data_"+model_name
 
 config = {

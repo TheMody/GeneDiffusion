@@ -68,6 +68,7 @@ class SynGeneticDataset(Dataset):
     def __init__(self, path = save_path+"/"):
         self.path = path
         self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt"]
+        print("path of dataset", self.path)
         print("len of syn dataset", len(self.all_file_paths))
         # for file in os.listdir(self.path):
         #     self.x,self.y = torch.load(open(file,"rb"))
@@ -77,8 +78,8 @@ class SynGeneticDataset(Dataset):
 
     def __getitem__(self, idx):
         genome, label = torch.load(self.all_file_paths[idx])
-        label = F.one_hot(label.squeeze(),2)
-        return genome, label.float()
+        #label = F.one_hot(label.squeeze(),2)
+        return genome, label
 
 class GeneticDataset(Dataset):
     def __init__(self, processed = True, normalize = normalize_data):
