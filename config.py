@@ -1,7 +1,7 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 4
+batch_size = 2
 gradient_accumulation_steps = 8
 epochs = 100
 epochs_classifier = 50
@@ -13,7 +13,7 @@ lr_classifier = 1e-3
 lr_diffusion = 2e-4
 num_of_samples = 10000
 normalize_data = False
-model_name =  "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,
+model_name = "PosSensitiveDeepLarge"
 save_path = "syn_data_"+model_name
 
 config = {

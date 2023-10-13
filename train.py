@@ -29,7 +29,7 @@ if __name__ == '__main__':
     if model_name == "PosSensitiveDeep":
         model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=64).to(device)
     if model_name == "PosSensitiveDeepLarge":
-        model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=192).to(device)
+        model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=128).to(device)
     if model_name == "PosSensitiveDeepVeryLarge":
         model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=384).to(device)
   #  model = UnetMLP(num_channels,num_channels, c_emb_dim=num_classes).to(device)
