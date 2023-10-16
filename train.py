@@ -11,7 +11,6 @@ from config import *
 import time
 from train_classifier import train_classifier
 
-
 if __name__ == '__main__':
     wandb.init(project="diffusionGene", config = config)
     dataloader,valdataloader = GeneticDataloaders(config["batch_size"], True)
