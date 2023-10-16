@@ -33,6 +33,7 @@ def train_classifier():
                     inputs, labels = next(iter(train_dataloader))
                     inputs = inputs.float().to(device)
                     labels = labels.to(device)
+                    print(labels)
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
