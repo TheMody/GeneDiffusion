@@ -30,7 +30,7 @@ if __name__ == '__main__':
     if model_name == "PosSensitiveDeep":
         model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=64).to(device)
     if model_name == "PosSensitiveDeepLarge":
-        model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=192).to(device)
+        model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=128).to(device)
     if model_name == "PosSensitiveDeepVeryLarge":
         model = PosSensitiveUnetDeep(sequence_length = gene_size, in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=384).to(device)
   #  model = UnetMLP(num_channels,num_channels, c_emb_dim=num_classes).to(device)
@@ -48,13 +48,14 @@ if __name__ == '__main__':
         model.train()
         avgloss = 0
         avglosssteps = 0
+        train_iter = iter(dataloader)
         for step in range(len(dataloader)//gradient_accumulation_steps):
             start = time.time()
             #assert (genes.max().item() <= 1) and (0 <= genes.min().item()) todo normalize genes
             optimizer.zero_grad()
             accloss = 0.0
             for micro_step in range(gradient_accumulation_steps):
-                genes, labels = next(iter(dataloader))
+                genes, labels = next(train_iter)
                 genes  = genes.to(device).float().permute(0,2,1)
                 labels = labels.to(device)
 

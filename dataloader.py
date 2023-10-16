@@ -77,7 +77,9 @@ class SynGeneticDataset(Dataset):
         return len(self.all_file_paths)
 
     def __getitem__(self, idx):
+       # print(self.all_file_paths[idx])
         genome, label = torch.load(self.all_file_paths[idx])
+      #  print(label)
         #label = F.one_hot(label.squeeze(),2)
         return genome, label
 

@@ -19,21 +19,23 @@ def train_classifier():
     #data
     geneticData = SynGeneticDataset()
     train_dataloader = DataLoader(geneticData, batch_size=config["batch_size"])
+    
     _,test_dataloader = GeneticDataloaders(config["batch_size"], True)
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
     running_loss = 0.0
     best_acc = 0.0
     for epoch in range(epochs_classifier):
+        dataloader_iter = iter(train_dataloader)
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 optimizer.zero_grad()
                 accloss = 0.0
                 accacc = 0.0
                 for micro_step in range(gradient_accumulation_steps):
-                    inputs, labels = next(iter(train_dataloader))
+                    inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
                     labels = labels.to(device)
-                    print(labels)
+                    #print(labels)
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
