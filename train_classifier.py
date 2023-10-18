@@ -35,7 +35,7 @@ def train_classifier():
                     inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
                     labels = labels.to(device)
-                    #print(labels)
+                 #   print(labels)
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
@@ -58,7 +58,7 @@ def train_classifier():
                 if i % log_freq == 0:
                  #   acc = np.sum(np.argmax(outputs.detach().cpu().numpy(), axis = 1) == labels.detach().cpu().numpy())/labels.shape[0]
                     avg_loss = running_loss / log_freq # loss per batch
-                    log_dict = {"avg_loss": avg_loss, "accuracy": acc, "lr": scheduler.get_lr()[0]}
+                    log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0]}
                     wandb.log(log_dict)
                     running_loss = 0.
                     if i % 20 == 0:
@@ -80,7 +80,7 @@ def train_classifier():
                 accummulated_loss += loss.item()
             avg_acc = accummulated_acc/len(test_dataloader)
             avg_loss = accummulated_loss/len(test_dataloader)
-            wandb.log({"test_loss": avg_loss, "test_accuracy": avg_acc})
+            wandb.log({"test_loss_classifier": avg_loss, "test_accuracy_classifier": avg_acc})
             print(' test epoch {} loss: {} accuracy: {}'.format(epoch+1, avg_loss, avg_acc))
         if avg_acc > best_acc:
             best_acc = avg_acc
