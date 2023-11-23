@@ -18,6 +18,8 @@ if __name__ == '__main__':
     diffusion = GuassianDiffusion(max_steps)
   #  model = Unet2D(3,3, hidden_dim=[64,128,256,512], c_emb_dim=num_classes).to(device)
   #  model = torch.load("modellarge.pt")
+    if model_name == "UnetMLP":
+        model = UnetMLP(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
     if model_name == "Unet":
         model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1).to(device)
     if model_name == "UnetLarge":
@@ -35,7 +37,7 @@ if __name__ == '__main__':
   #  model = UnetMLP(num_channels,num_channels, c_emb_dim=num_classes).to(device)
     critertion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr_diffusion)
- #   optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
+  #  optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
     lrs = CosineWarmupScheduler(optimizer, warmup=100, max_iters=epochs*len(dataloader)//gradient_accumulation_steps)
 
 
@@ -57,7 +59,6 @@ if __name__ == '__main__':
                 genes, labels = next(train_iter)
                 genes  = genes.to(device).float().permute(0,2,1)
                 labels = labels.to(device)
-
                 #mask out label with 10% probability
                 random__label_masks = torch.rand(labels.size()).to(device)
                 random__label_masks = random__label_masks > 0.1
@@ -96,12 +97,15 @@ if __name__ == '__main__':
 
             wandb.log(log_dict)
 
+       # if e % 1000 == 0 and e != 0:
         model.eval()
         with torch.no_grad():
             avgloss = 0
             avglosssteps = 0
             for step, (genes, labels) in enumerate(valdataloader):
-               # assert (genes.max().item() <= 1) and (0 <= genes.min().item())
+                # if step > 100:
+                #     break
+            # assert (genes.max().item() <= 1) and (0 <= genes.min().item())
                 genes  = genes.to(device).float().permute(0,2,1)
                 labels = labels.to(device)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
@@ -112,7 +116,7 @@ if __name__ == '__main__':
                 avglosssteps = avglosssteps + 1
             log_dict = {"valloss": avgloss/avglosssteps}
             wandb.log(log_dict)
-          
+        
             print(f"val at epoch: {e},  loss: {avgloss/avglosssteps}")
             if avgloss/avglosssteps < minloss:
                 minloss = avgloss/avglosssteps

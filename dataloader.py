@@ -67,7 +67,7 @@ def processes_data():
 class SynGeneticDataset(Dataset):
     def __init__(self, path = save_path+"/"):
         self.path = path
-        self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt"]
+        self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt" and file != "vaemodel.pt"]
         print("path of dataset", self.path)
         print("len of syn dataset", len(self.all_file_paths))
         # for file in os.listdir(self.path):
@@ -81,7 +81,7 @@ class SynGeneticDataset(Dataset):
         genome, label = torch.load(self.all_file_paths[idx])
       #  print(label)
         #label = F.one_hot(label.squeeze(),2)
-        return genome, label
+        return genome.permute(1,0), label
 
 class GeneticDataset(Dataset):
     def __init__(self, processed = True, normalize = normalize_data):
@@ -106,20 +106,26 @@ class GeneticDataset(Dataset):
         if self.processed:
             genome = F.pad(torch.tensor(genome), (0,0,0, 18432 - genome.shape[0]), "constant", 0)
      #   print(genome.shape)
-        label = self.y[idx]
-        return genome, label
+        label = torch.tensor(self.y[idx])
+        return genome.float(), label
 
-def GeneticDataloaders(batchsize, processed = True):
+def GeneticDataSets( processed = True):
     dataset = GeneticDataset(processed)
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
     generator1 = torch.Generator().manual_seed(42)
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size], generator = generator1)
+    return train_dataset,test_dataset
+
+def GeneticDataloaders(batchsize, processed = True):
+    train_dataset,test_dataset = GeneticDataSets(processed)
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batchsize,
-                                           shuffle=True, num_workers=0)
+                                           shuffle=True)
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batchsize,
-                                          shuffle=False, num_workers=0)
+                                          shuffle=False)
     return train_dataloader,test_dataloader
+
+
 
 
 #processes_data()

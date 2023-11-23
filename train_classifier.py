@@ -1,10 +1,10 @@
 import torch
 from model import MLPModel
-from dataloader import  GeneticDataloaders, SynGeneticDataset
+from dataloader import  GeneticDataloaders, SynGeneticDataset, GeneticDataSets
 import numpy as np
 import wandb
 from cosine_scheduler import CosineWarmupScheduler
-from torch.utils.data import DataLoader, SubsetRandomSampler
+from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from config import *
 
@@ -17,12 +17,15 @@ def train_classifier():
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="disease_prediction_syn", config=config)
     #data
-    geneticData = SynGeneticDataset()
-    train_dataloader = DataLoader(geneticData, batch_size=config["batch_size"])
+    geneticDataSyn = SynGeneticDataset()
+    geneticDatatrain,_ = GeneticDataSets()
+    train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
     
     _,test_dataloader = GeneticDataloaders(config["batch_size"], True)
+
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
+  #  encoder_model = torch.load( save_path+"/"+"vaemodel.pt")
     running_loss = 0.0
     best_acc = 0.0
     for epoch in range(epochs_classifier):
@@ -34,6 +37,7 @@ def train_classifier():
                 for micro_step in range(gradient_accumulation_steps):
                     inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
+                   # r_inputs = encoder_model(inputs.permute(0,2,1), train = False).permute(0,2,1)
                     labels = labels.to(device)
                  #   print(labels)
                     outputs = model(inputs)
