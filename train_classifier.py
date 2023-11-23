@@ -18,8 +18,9 @@ def train_classifier():
     wandb.init(project="disease_prediction_syn", config=config)
     #data
     geneticDataSyn = SynGeneticDataset()
-    geneticDatatrain,_ = GeneticDataSets()
-    train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
+  #  geneticDatatrain,_ = GeneticDataSets()
+   # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
+    train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
     
     _,test_dataloader = GeneticDataloaders(config["batch_size"], True)
 
