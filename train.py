@@ -63,6 +63,7 @@ if __name__ == '__main__':
                 random__label_masks = random__label_masks > 0.1
                 labels = torch.where(random__label_masks, labels, num_classes)      
 
+             #   print(labels)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
@@ -117,7 +118,7 @@ if __name__ == '__main__':
                 minloss = avgloss/avglosssteps
                 print("saving model at epoch: "  + str(e) +" ,with loss: "+ str(avgloss/avglosssteps) )
                 torch.save(model, save_path+"/"+"model.pt")
-    wandb.finish()
+   # wandb.finish()
     model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()
     generate_sample(model, num_of_samples, savefolder=save_path)

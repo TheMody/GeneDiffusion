@@ -3,6 +3,7 @@ import math
 import torch
 import numpy as np 
 from easydict import EasyDict
+from config import *
 
 unsqueeze3x = lambda x: x[..., None,None] #extra Nones needed per input dimension
 class GuassianDiffusion:
@@ -129,9 +130,10 @@ class GuassianDiffusion:
                 current_t = torch.tensor([t] * len(final), device=final.device)
                 if guidance == "normal":
                     pred_epsilon = model(final, current_t,y)
-                else:
+                else: # i think the class labels are wrong atm -fixed
                     pred_epsilon_conditional = model(final, current_t,y)
-                    pred_epsilon_unconditional = model(final, current_t, torch.zeros_like(y))
+                    print(torch.zeros_like(y)+num_classes)
+                    pred_epsilon_unconditional = model(final, current_t, torch.zeros_like(y)+num_classes)
                     pred_epsilon = (1+w)*pred_epsilon_conditional - w*pred_epsilon_unconditional
                 # using xt+x0 to derive mu_t, instead of using xt+eps (former is more stable)
                 pred_x0 = self.get_x0_from_xt_eps(
