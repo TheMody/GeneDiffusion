@@ -65,7 +65,8 @@ def processes_data():
 
 
 class SynGeneticDataset(Dataset):
-    def __init__(self, path = save_path+"/"):
+    def __init__(self, path = save_path+"/", label = None):
+        self.label = label
         self.path = path
         self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt" and file != "vaemodel.pt"]
         print("path of dataset", self.path)
@@ -79,17 +80,25 @@ class SynGeneticDataset(Dataset):
     def __getitem__(self, idx):
        # print(self.all_file_paths[idx])
         genome, label = torch.load(self.all_file_paths[idx])
+        if self.label is not None:
+            label = torch.tensor(self.label)
       #  print(label)
         #label = F.one_hot(label.squeeze(),2)
         return genome.permute(1,0), label
 
+
 class GeneticDataset(Dataset):
-    def __init__(self, processed = True, normalize = normalize_data):
+    def __init__(self, processed = True, normalize = normalize_data, label = None):
+        #super(GeneticDataset, self).__init__()
         self.x,self.y = load_data(processed = processed)
+        self.label = label
         if normalize:
-            xstd = np.std(self.x,axis=0)
-            xstd[xstd == 0.0] +=1
-            self.x = (self.x-np.mean(self.x,axis=0)) / xstd
+          #  xstd = np.std(self.x,axis=0)
+         #   xstd[xstd == 0.0] +=1
+            max = np.max(np.abs(self.x),axis=0)
+            max[max == 0.0] +=1
+            self.x = (self.x-np.mean(self.x,axis=0)) /max#/ xstd
+            self.x = self.x * 2 - 1
         self.processed = processed
         #now we shuffle x and y
         np.random.seed(42)
@@ -107,10 +116,12 @@ class GeneticDataset(Dataset):
             genome = F.pad(torch.tensor(genome), (0,0,0, 18432 - genome.shape[0]), "constant", 0)
      #   print(genome.shape)
         label = torch.tensor(self.y[idx])
+        if self.label is not None:
+            label = torch.tensor(self.label)
         return genome.float(), label
 
-def GeneticDataSets( processed = True):
-    dataset = GeneticDataset(processed)
+def GeneticDataSets( processed = True, label = None):
+    dataset = GeneticDataset(processed, label = label)
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
     generator1 = torch.Generator().manual_seed(42)

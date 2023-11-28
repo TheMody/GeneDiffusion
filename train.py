@@ -11,7 +11,10 @@ from config import *
 import time
 from train_classifier import train_classifier
 
-if __name__ == '__main__':
+def data_abs_mean(x):
+    return torch.mean(torch.abs(x))
+
+def train_diffusion():
     wandb.init(project="diffusionGene", config = config)
     dataloader,valdataloader = GeneticDataloaders(config["batch_size"], True)
    # diffusion = diffusion_process(max_steps, 32, 32)
@@ -43,7 +46,7 @@ if __name__ == '__main__':
 
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
-    minloss = 1
+    minloss = 10000
     ema_time = 0.0
     for e in range(epochs):
         model.train()
@@ -55,20 +58,27 @@ if __name__ == '__main__':
             #assert (genes.max().item() <= 1) and (0 <= genes.min().item()) todo normalize genes
             optimizer.zero_grad()
             accloss = 0.0
+            acc_extra = 0.0
             for micro_step in range(gradient_accumulation_steps):
                 genes, labels = next(train_iter)
                 genes  = genes.to(device).float().permute(0,2,1)
+                #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
                 #mask out label with 10% probability
                 random__label_masks = torch.rand(labels.size()).to(device)
                 random__label_masks = random__label_masks > 0.1
                 labels = torch.where(random__label_masks, labels, num_classes)      
 
-             #   print(labels)
+               # print(labels)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
                 loss = critertion(pred_eps,eps)
+                
+                #print("abs_mean of reconstructed data",data_abs_mean(x_r))
+                x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
+                acc_extra += data_abs_mean(x_r-genes).item()
+                #print("abs_mean error",acc_extra)
                 
                 avgloss = avgloss  + loss.item()
                 avglosssteps = avglosssteps + 1
@@ -82,7 +92,7 @@ if __name__ == '__main__':
                 print(f"epoch: {e}, step: {step}, loss: {avgloss/avglosssteps}")
                 avgloss = 0
                 avglosssteps = 0
-            log_dict = {"loss": accloss}
+            log_dict = {"loss": accloss, "reconstruction_error": acc_extra/gradient_accumulation_steps}
 
             time_taken = time.time() - start
             ema_time = ema_time * 0.99 + time_taken * 0.01 #exponential moving average
@@ -102,26 +112,39 @@ if __name__ == '__main__':
         with torch.no_grad():
             avgloss = 0
             avglosssteps = 0
+            acc_rec_error = 0.0
+          #  ts = 1
+          #  ts = [range(1,max_steps)]
             for step, (genes, labels) in enumerate(valdataloader):
                 # if step > 100:
                 #     break
             # assert (genes.max().item() <= 1) and (0 <= genes.min().item())
                 genes  = genes.to(device).float().permute(0,2,1)
                 labels = labels.to(device)
+                # t = torch.Tensor([range(ts, ts+len(genes))], dtype=torch.int64).to(device)
+                # ts = ts + len(genes)
+                # if ts > max_steps:
+                #     ts = 1
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
                 loss = critertion(pred_eps,eps)
+
+                x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
+                acc_rec_error += data_abs_mean(x_r-genes).item()
+
                 avgloss = avgloss  + loss.item()
                 avglosssteps = avglosssteps + 1
-            log_dict = {"valloss": avgloss/avglosssteps}
+            log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps}
             wandb.log(log_dict)
         
-            print(f"val at epoch: {e},  loss: {avgloss/avglosssteps}")
-            if avgloss/avglosssteps < minloss:
-                minloss = avgloss/avglosssteps
-                print("saving model at epoch: "  + str(e) +" ,with loss: "+ str(avgloss/avglosssteps) )
+            print(f"val at epoch: {e},  loss: {avgloss/avglosssteps} rec error:  {acc_rec_error/avglosssteps}")
+            if acc_rec_error/avglosssteps < minloss:
+                minloss = acc_rec_error/avglosssteps
+                print("saving model at epoch: "  + str(e) +" ,with loss: "+ str(acc_rec_error/avglosssteps) )
                 torch.save(model, save_path+"/"+"model.pt")
+if __name__ == '__main__':
+    train_diffusion()
    # wandb.finish()
     model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()

@@ -94,10 +94,12 @@ class DownsamplinBlockMLP(nn.Module):
         self.norm = nn.GroupNorm(32,output_size)
     
     def forward(self,x):
+
         x = F.silu(self.lin1(x))
+        skip = x
         x_skip = F.silu(self.lin2(x))
         x = self.norm(x)
-        x = F.silu(self.lin3(x))
+        x = skip + F.silu(self.lin3(x))
         return x, x_skip
 
 class UpsamplingBlockMLP(nn.Module):
@@ -111,7 +113,9 @@ class UpsamplingBlockMLP(nn.Module):
         self.c_emb_linear = nn.Linear(c_emb_dim, output_size)
     
     def forward(self,x, x_skip, t_emb, c_emb = None):
+        
         x = F.silu(self.lin1(x))
+        skip = x
         x = self.norm(x)
         x = F.silu(self.lin2(torch.cat((x,x_skip), dim = 1)))
         emb = self.t_emb_linear(t_emb.unsqueeze(-1).float())
@@ -119,7 +123,7 @@ class UpsamplingBlockMLP(nn.Module):
             x = x + emb
         else:
             x = x * self.c_emb_linear(c_emb.float()) + emb
-        x = F.silu(self.lin3(x))
+        x =  F.silu(self.lin3(x)) + skip 
         return x
 
 
@@ -168,7 +172,7 @@ class UnetMLP(nn.Module):
          #   print(x_skips[-1].shape)
             x = block(x, x_skips.pop(),t,y)
        # print(x.shape)
-        x = self.out(x)#+x_skips.pop()
+        x = self.out(x)+x_skips.pop()
         x = x.reshape(shape)
         return x
 
