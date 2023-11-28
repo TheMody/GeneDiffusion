@@ -19,8 +19,8 @@ model_name = "Unet"  #"UnetMLP"#"PosSensitiveLarge"# "Unet"#"PosSensitiveLarge" 
 save_path = "syn_data_"+model_name
 kl_factor = 1e-2
 gradient_clip = 1
-channel_multiplier =(1,1,1,1,2,2,3,4) #(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
-attention_resolutions = [32,64] #[32,128] #[32,64]
+channel_multiplier =(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
+attention_resolutions = [32,128] #[32,64]
 config = {
     "batch_size": batch_size,
     "gradient_accumulation_steps": gradient_accumulation_steps,

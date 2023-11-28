@@ -113,7 +113,7 @@ def train_diffusion():
             avgloss = 0
             avglosssteps = 0
             acc_rec_error = 0.0
-          #  ts = 1
+            ts = max_steps//2
           #  ts = [range(1,max_steps)]
             for step, (genes, labels) in enumerate(valdataloader):
                 # if step > 100:
@@ -121,11 +121,14 @@ def train_diffusion():
             # assert (genes.max().item() <= 1) and (0 <= genes.min().item())
                 genes  = genes.to(device).float().permute(0,2,1)
                 labels = labels.to(device)
-                # t = torch.Tensor([range(ts, ts+len(genes))], dtype=torch.int64).to(device)
-                # ts = ts + len(genes)
-                # if ts > max_steps:
-                #     ts = 1
-                t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
+                if ts + len(genes) > max_steps:
+                    t = torch.Tensor([*[i for i in range(ts, min(ts+len(genes),max_steps))], *[i for i in range(1, ts+len(genes)-(max_steps-1))]]).type(torch.int64).squeeze().to(device)
+                    ts = 1
+                else:
+                    t = torch.Tensor([range(ts, ts+len(genes))]).type(torch.int64).squeeze().to(device)
+                ts = ts + len(genes)
+                
+               #t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
                 loss = critertion(pred_eps,eps)
