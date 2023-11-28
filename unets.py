@@ -861,7 +861,8 @@ def UNet1d(
     # attention_resolutions = "256,512,2048"
 
     channel_mult = channel_multiplier#(1,1,1,1,2,2,3,4)
-    attention_resolutions = attention_resolutions#"32,64"
+    attention_res = attention_resolutions
+    #attention_resolutions = attention_resolutions#"32,64"
 
     # attention_ds = []
 
@@ -873,7 +874,7 @@ def UNet1d(
         model_channels=base_width,
         out_channels=out_channels,
         num_res_blocks=3,
-        attention_resolutions=attention_resolutions,
+        attention_resolutions=tuple(attention_res),
         dropout=0.1,
         channel_mult=channel_mult,
         num_classes=num_classes,
