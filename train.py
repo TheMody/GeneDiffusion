@@ -24,7 +24,7 @@ def train_diffusion():
     if model_name == "UnetMLP":
         model = UnetMLP(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
     if model_name == "Unet":
-        model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes).to(device)
+        model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1).to(device)
     if model_name == "UnetLarge":
         model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=192).to(device)
     if model_name == "PosSensitive":
