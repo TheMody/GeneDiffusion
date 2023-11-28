@@ -133,7 +133,7 @@ def GeneticDataloaders(batchsize, processed = True):
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batchsize,
                                            shuffle=True)
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batchsize,
-                                          shuffle=False)
+                                          shuffle=True)
     return train_dataloader,test_dataloader
 
 
