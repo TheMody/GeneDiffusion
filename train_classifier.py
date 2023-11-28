@@ -38,9 +38,10 @@ def train_classifier():
                 for micro_step in range(gradient_accumulation_steps):
                     inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
+                    #print(inputs[0])
                    # r_inputs = encoder_model(inputs.permute(0,2,1), train = False).permute(0,2,1)
                     labels = labels.to(device)
-                 #   print(labels)
+                 #   print(labels.shape)
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
@@ -70,12 +71,13 @@ def train_classifier():
                         print('  batch {} loss: {} accuracy: {}'.format(i + 1, avg_loss, acc))
 
 
-        #evaluate model after epoch
+        # #evaluate model after epoch
         with torch.no_grad():
             accummulated_acc = 0.0
             accummulated_loss = 0.0
             for i, data in enumerate(test_dataloader):
                 inputs, labels = data
+              #  print(inputs.shape)
                 inputs = inputs.float().to(device)
                 labels = labels.to(device)
                 outputs = model(inputs)

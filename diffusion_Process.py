@@ -91,7 +91,7 @@ class GuassianDiffusion:
     def reverse_forward_process_simple(self, xt, t ,eps):
         """Simple backward stack of the forward process, where we remove noise in the image.
         """
-        return (xt -(1 - self.scalars.alpha_bar[t]).sqrt() * eps) / self.scalars.alpha_bar[t].sqrt()
+        return (xt -unsqueeze3x((1 - self.scalars.alpha_bar[t]).sqrt()) * eps) / unsqueeze3x(self.scalars.alpha_bar[t].sqrt())
 
     def sample_from_reverse_process(
         self, model, xT, timesteps=None, y = None, ddim=False, guidance= "normal", w = 3.0

@@ -7,6 +7,7 @@ import torch as th
 import torch.nn as nn
 import torch.nn.functional as F
 from model import MultichannelLinear
+from config import *
 
 
 class GroupNorm32(nn.GroupNorm):
@@ -544,6 +545,7 @@ class UNetModel(nn.Module):
                     )
                 ]
                 ch = int(mult * model_channels)
+                #print(ds)
                 if ds in attention_resolutions:
                     layers.append(
                         AttentionBlock(
@@ -687,16 +689,16 @@ class UNetModel(nn.Module):
       #  print("h", h.shape)
         for module in self.input_blocks:
             h = module(h, emb)
-        #    print("h", h.shape)
+         #   print("h", h.shape)
             hs.append(h)
         h = self.middle_block(h, emb)
-       # print("h", h.shape)
+     #   print("h", h.shape)
         for module in self.output_blocks:
          #   print(h.shape)
          #   print(hs[-1].shape)
             h = th.cat([h, hs.pop()], dim=1)
             h = module(h, emb)
-          #  print("h", h.shape)
+        #    print("h", h.shape)
         h = h.type(x.dtype)
         return self.out(h)
 
@@ -755,20 +757,20 @@ class PosSensitiveUnet(nn.Module):
                 num_classes=None) -> None:
         super().__init__()
 
-        channel_mult = (1,1,1,1,2,2,3,4)
-        attention_resolutions = "32,64"
+        channel_mult = channel_multiplier
+        attention_res = attention_resolutions
 
-        attention_ds = []
+        # attention_ds = []
 
-        for res in attention_resolutions.split(","):
-            attention_ds.append(int(res))
+        # for res in attention_resolutions.split(","):
+        #     attention_ds.append(int(res))
 
         self.Unet = UNetModel(
             in_channels=base_width,
             model_channels=base_width,
             out_channels=base_width,
             num_res_blocks=3,
-            attention_resolutions=tuple(attention_ds),
+            attention_resolutions=tuple(attention_res),
             dropout=0.1,
             channel_mult=channel_mult,
             num_classes=num_classes,
