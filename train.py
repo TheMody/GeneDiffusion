@@ -52,6 +52,7 @@ def train_diffusion():
         avglosssteps = 0
         train_iter = iter(dataloader)
         for step in range(len(dataloader)//gradient_accumulation_steps):
+            break
             start = time.time()
             #assert (genes.max().item() <= 1) and (0 <= genes.min().item()) todo normalize genes
             optimizer.zero_grad()
@@ -120,13 +121,11 @@ def train_diffusion():
                 genes  = genes.to(device).float().permute(0,2,1)
                 labels = labels.to(device)
                 if ts + len(genes) > max_steps:
-                    t = torch.Tensor([*[i for i in range(ts, min(ts+len(genes),max_steps))], *[i for i in range(1, ts+len(genes)-(max_steps-1))]]).type(torch.int64).squeeze().to(device)
-                    ts = 1
+                    t = torch.Tensor([*[i for i in range(ts, min(ts+len(genes),max_steps))], *[i for i in range(1, ts+len(genes)-(max_steps-1))]]).type(torch.int64).squeeze(0).to(device)
+                    ts =  ts+len(genes)-(max_steps-1)
                 else:
-                    t = torch.Tensor([range(ts, ts+len(genes))]).type(torch.int64).squeeze().to(device)
-                ts = ts + len(genes)
-                
-               #t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
+                    t = torch.Tensor([range(ts, ts+len(genes))]).type(torch.int64).squeeze(0).to(device)
+                    ts = ts + len(genes)
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
                 loss = critertion(pred_eps,eps)
