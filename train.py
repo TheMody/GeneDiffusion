@@ -52,7 +52,6 @@ def train_diffusion():
         avglosssteps = 0
         train_iter = iter(dataloader)
         for step in range(len(dataloader)//gradient_accumulation_steps):
-            break
             start = time.time()
             #assert (genes.max().item() <= 1) and (0 <= genes.min().item()) todo normalize genes
             optimizer.zero_grad()
