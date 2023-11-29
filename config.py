@@ -19,7 +19,7 @@ kl_factor = 1e-2
 gradient_clip = 1
 channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
 attention_resolutions = [32,64]#[32,128] #[32,64]
-base_width = 192
+base_width = 64
 model_name = "Unet"#"UnetMLP"# "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,PosSensitive UnetMLP_working
 save_path = "syn_data_"+model_name+str(attention_resolutions)+str(channel_multiplier)+str(base_width)
 
