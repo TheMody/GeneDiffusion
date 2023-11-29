@@ -1,8 +1,8 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 8
-gradient_accumulation_steps = 2
+batch_size = 16
+gradient_accumulation_steps = 1
 epochs = 100
 epochs_vae = 4000
 epochs_classifier = 50
@@ -17,9 +17,9 @@ num_of_samples = 10000
 normalize_data = True
 kl_factor = 1e-2
 gradient_clip = 1
-channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
-attention_resolutions = [32,64]#[32,128] #[32,64]
-base_width = 64
+channel_multiplier = (1,1,1,1,2,2,3,4,6,8,12,16) # (1,1,1,1,2,2,3,4)
+attention_resolutions = [32,128] #[32,64]
+base_width =  64
 model_name = "Unet"#"UnetMLP"# "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,PosSensitive UnetMLP_working
 save_path = "syn_data_"+model_name+str(attention_resolutions)+str(channel_multiplier)+str(base_width)
 
