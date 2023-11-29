@@ -8,9 +8,8 @@ from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from config import *
 
-def preprocessing_function(x, std):
-    x = x -0.5
-    x = x / std
+def preprocessing_function(x):
+   # x = x*max_value
     # self.x-np.mean(self.x,axis=0)
     # max = np.max(np.abs(self.x),axis=0)
     # max[max == 0.0] +=1
@@ -27,10 +26,10 @@ def train_classifier():
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-  #  geneticDataSyn = SynGeneticDataset()
+   # geneticDataSyn = SynGeneticDataset()
   #  geneticDatatrain,_ = GeneticDataSets()
    # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
-  #  train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
+   # train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
    # genedata = GeneticDataset()
    # std = genedata.std.to(device)
     train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True)
@@ -49,7 +48,7 @@ def train_classifier():
                 for micro_step in range(gradient_accumulation_steps):
                     inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
-                   # inputs = preprocessing_function(inputs,std)
+                    #inputs = preprocessing_function(inputs)
                     #print(inputs[0])
                    # r_inputs = encoder_model(inputs.permute(0,2,1), train = False).permute(0,2,1)
                     labels = labels.to(device)
@@ -91,7 +90,7 @@ def train_classifier():
                 inputs, labels = data
               #  print(inputs.shape)
                 inputs = inputs.float().to(device)
-              #  inputs = preprocessing_function(inputs,std)
+                #inputs = preprocessing_function(inputs)
                 labels = labels.to(device)
                 outputs = model(inputs)
                 loss = loss_fn(outputs, labels)

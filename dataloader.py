@@ -96,9 +96,10 @@ class GeneticDataset(Dataset):
            # xstd = np.std(self.x,axis=0)
            # xstd[xstd == 0.0] +=1
             self.x-np.mean(self.x,axis=0)
-            max = np.max(np.abs(self.x))
-         #   max[max == 0.0] +=1
-            self.x = self.x / max# xstd
+            max = np.max(np.abs(self.x), axis = 0)
+           # print(max)
+            max[max == 0.0] +=1
+            self.x = self.x / max#xstd
           #  self.x = self.x / 2 + 0.5
        # self.std = np.std(self.x,axis=0)
        # self.std = F.pad(torch.tensor(self.std), (0,0,0, 18432 - self.std.shape[0]), "constant", 0).float()
