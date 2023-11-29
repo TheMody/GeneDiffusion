@@ -27,13 +27,13 @@ def train_classifier():
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-    geneticDataSyn = SynGeneticDataset()
+  #  geneticDataSyn = SynGeneticDataset()
   #  geneticDatatrain,_ = GeneticDataSets()
    # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
-    train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
+  #  train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
    # genedata = GeneticDataset()
    # std = genedata.std.to(device)
-    _,test_dataloader = GeneticDataloaders(config["batch_size"], True)
+    train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True)
 
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
