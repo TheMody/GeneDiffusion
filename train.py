@@ -70,8 +70,8 @@ def train_diffusion():
                # print(labels)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
-                print(torch.max(xt))
-                print(torch.min(xt))
+              #  print(torch.max(eps))
+              #  print(torch.min(eps))
                 pred_eps = model(xt, t, y = labels)
                 loss = critertion(pred_eps,eps)
                 
