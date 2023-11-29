@@ -1,12 +1,22 @@
 import torch
 from model import MLPModel
-from dataloader import  GeneticDataloaders, SynGeneticDataset, GeneticDataSets
+from dataloader import  GeneticDataloaders, SynGeneticDataset, GeneticDataSets, GeneticDataset
 import numpy as np
 import wandb
 from cosine_scheduler import CosineWarmupScheduler
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from config import *
+
+def preprocessing_function(x, std):
+    x = x -0.5
+    x = x / std
+    # self.x-np.mean(self.x,axis=0)
+    # max = np.max(np.abs(self.x),axis=0)
+    # max[max == 0.0] +=1
+    # self.x = self.x / max
+    # self.x = self.x / 2 + 0.5
+    return x
 
 def train_classifier():
     #basic building blocks
@@ -15,13 +25,14 @@ def train_classifier():
     model = model.to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=lr_classifier)
     loss_fn = torch.nn.CrossEntropyLoss()
-    wandb.init(project="disease_prediction_syn", config=config)
+    wandb.init(project="diffusionGene", config=config)
     #data
     geneticDataSyn = SynGeneticDataset()
   #  geneticDatatrain,_ = GeneticDataSets()
    # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
     train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
-    
+   # genedata = GeneticDataset()
+   # std = genedata.std.to(device)
     _,test_dataloader = GeneticDataloaders(config["batch_size"], True)
 
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
@@ -38,6 +49,7 @@ def train_classifier():
                 for micro_step in range(gradient_accumulation_steps):
                     inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
+                   # inputs = preprocessing_function(inputs,std)
                     #print(inputs[0])
                    # r_inputs = encoder_model(inputs.permute(0,2,1), train = False).permute(0,2,1)
                     labels = labels.to(device)
@@ -79,6 +91,7 @@ def train_classifier():
                 inputs, labels = data
               #  print(inputs.shape)
                 inputs = inputs.float().to(device)
+              #  inputs = preprocessing_function(inputs,std)
                 labels = labels.to(device)
                 outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
