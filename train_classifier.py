@@ -104,8 +104,8 @@ def train_classifier():
             print(' test epoch {} loss: {} accuracy: {}'.format(epoch+1, avg_loss, avg_acc))
         if avg_acc > best_acc:
             best_acc = avg_acc
-            torch.save(model.state_dict(), "classification_models/model"+ str(best_acc) +".pt")
-            print(f"saved new best model with acc {best_acc}")
+         #   torch.save(model.state_dict(), "classification_models/model"+ str(best_acc) +".pt")
+         #   print(f"saved new best model with acc {best_acc}")
 
 
 if __name__ == "__main__":
