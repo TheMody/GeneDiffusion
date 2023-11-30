@@ -10,6 +10,7 @@ from generate import generate_sample
 from config import *
 import time
 from train_classifier import train_classifier
+from PIL import Image
 
 def data_abs_mean(x):
     return torch.mean(torch.abs(x))
@@ -114,7 +115,7 @@ def train_diffusion():
             avglosssteps = 0
             acc_rec_error = 0.0
             ts = max_steps//2
-       #     histogramm = np.zeros((max_steps))
+            histogramm = torch.zeros((max_steps,2)).to(device)
             for step, (genes, labels) in enumerate(valdataloader):
                 # if step > 100:
                 #     break
@@ -127,16 +128,27 @@ def train_diffusion():
                 else:
                     t = torch.Tensor([range(ts, ts+len(genes))]).type(torch.int64).squeeze(0).to(device)
                     ts = ts + len(genes)
+                
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
                 loss = critertion(pred_eps,eps)
 
                 x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
+                
+                histogramm[t, 0] = (histogramm[t, 0]  * histogramm[t, 1] + torch.sum(torch.abs(x_r-genes), dim = (1,2))) / (histogramm[t, 1]  +1)
+                histogramm[t, 1] += 1
+                
                 acc_rec_error += data_abs_mean(x_r-genes).item()
 
                 avgloss = avgloss  + loss.item()
                 avglosssteps = avglosssteps + 1
-            log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps}
+            import matplotlib.pyplot as plt
+            histogramm = histogramm.cpu().numpy()
+            plt.bar(np.arange(len(histogramm[:, 0])), histogramm[:, 0], width = 1)
+            plt.yscale("log")
+            plt.savefig(save_path+"/"+"histogramm.png")
+            img = Image.open(save_path+"/"+"histogramm.png")
+            log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps, "histogramm": wandb.Image(img)}
             wandb.log(log_dict)
         
             print(f"val at epoch: {e},  loss: {avgloss/avglosssteps} rec error:  {acc_rec_error/avglosssteps}")
