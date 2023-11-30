@@ -49,7 +49,7 @@ def train_classifier():
                     inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
                     #inputs = preprocessing_function(inputs)
-                    #print(inputs[0])
+                   # print(inputs[0])
                    # r_inputs = encoder_model(inputs.permute(0,2,1), train = False).permute(0,2,1)
                     labels = labels.to(device)
                  #   print(labels.shape)
@@ -90,6 +90,7 @@ def train_classifier():
                 inputs, labels = data
               #  print(inputs.shape)
                 inputs = inputs.float().to(device)
+              #  print(inputs[0])
                 #inputs = preprocessing_function(inputs)
                 labels = labels.to(device)
                 outputs = model(inputs)
