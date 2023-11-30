@@ -114,7 +114,7 @@ def train_diffusion():
             avglosssteps = 0
             acc_rec_error = 0.0
             ts = max_steps//2
-          #  ts = [range(1,max_steps)]
+            histogramm = np.zeros((max_steps))
             for step, (genes, labels) in enumerate(valdataloader):
                 # if step > 100:
                 #     break
