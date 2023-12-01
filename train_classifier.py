@@ -17,6 +17,10 @@ def preprocessing_function(x):
     # self.x = self.x / 2 + 0.5
     return x
 
+# fucking_indices = torch.tensor([ 29299,  89739,  68694,  76602, 118027, 100418,  44750, 118571,  64339,
+#          42206,  44749,  90074, 144971, 100552,  84855,  81344, 135784,  55991,
+#           5022, 130592]).to(device).long()
+
 def train_classifier():
     #basic building blocks
     model = MLPModel(num_input=num_channels*gene_size)#75584)#
@@ -26,7 +30,7 @@ def train_classifier():
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-    geneticDataSyn = SynGeneticDataset()
+    geneticDataSyn = SynGeneticDataset(path = "combined/")
   #  geneticDatatrain,_ = GeneticDataSets()
    # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
     train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
@@ -80,7 +84,7 @@ def train_classifier():
                     running_loss = 0.
                     if i % 20 == 0:
                         print('  batch {} loss: {} accuracy: {}'.format(i + 1, avg_loss, acc))
-
+                        
 
         # #evaluate model after epoch
         with torch.no_grad():
@@ -104,8 +108,8 @@ def train_classifier():
             print(' test epoch {} loss: {} accuracy: {}'.format(epoch+1, avg_loss, avg_acc))
         if avg_acc > best_acc:
             best_acc = avg_acc
-         #   torch.save(model.state_dict(), "classification_models/model"+ str(best_acc) +".pt")
-         #   print(f"saved new best model with acc {best_acc}")
+            torch.save(model,"classification_models/model.pt")
+            print(f"saved new best model with acc {best_acc}")
 
 
 if __name__ == "__main__":

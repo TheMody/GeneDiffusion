@@ -6,6 +6,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
+
+
 class DownsamplinBlock2d(nn.Module):
     def __init__(self,input_size, output_size):
         super().__init__()
@@ -175,6 +177,23 @@ class UnetMLP(nn.Module):
         x = self.out(x)+x_skips.pop()
         x = x.reshape(shape)
         return x
+
+
+class UnetMLPandCNN(nn.Module):
+    def __init__(self,channels_CNN ,channels_MLP , base_width = 64,  num_classes = 10 ):
+        super().__init__()
+        from unets import UNet1d
+        self.MLP = UnetMLP(channels_MLP, channels_MLP,c_emb_dim = num_classes)
+        self.CNN = UNet1d(channels_CNN, channels_CNN, base_width = base_width, num_classes= num_classes)
+        self.learnable_weight_time = nn.Linear(1,1)
+
+    def forward(self,x,t,y=None):
+        x1 = self.MLP(x,t,y)
+        x2 = self.CNN(x,t,y)
+        weighing_factor = F.sigmoid(self.learnable_weight_time(t.unsqueeze(-1).float())).unsqueeze(-1)
+        x = x1 * (1-weighing_factor) + x2* weighing_factor
+        return x
+
 
 class PositionalEncoding(nn.Module):
 
