@@ -95,8 +95,10 @@ def train_diffusion():
                 print(f"epoch: {e}, step: {step}, loss: {avgloss/avglosssteps}")
                 avgloss = 0
                 avglosssteps = 0
+            
             log_dict = {"loss": accloss, "reconstruction_error": acc_extra/gradient_accumulation_steps}
-
+            if model_name == "UnetCombined":
+                log_dict["weighing_factor"] = torch.mean(model.weighing_factor).item()
             time_taken = time.time() - start
             ema_time = ema_time * 0.99 + time_taken * 0.01 #exponential moving average
             ema_time_corrected = ema_time / (1 - 0.99 ** (step + 1 + e * len(dataloader)//gradient_accumulation_steps))#bias corrected ema
