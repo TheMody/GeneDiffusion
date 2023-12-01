@@ -186,11 +186,13 @@ class UnetMLPandCNN(nn.Module):
         self.MLP = UnetMLP(channels_MLP, channels_MLP,c_emb_dim = num_classes)
         self.CNN = UNet1d(channels_CNN, channels_CNN, base_width = base_width, num_classes= num_classes)
         self.learnable_weight_time = nn.Linear(1,1)
+        self.weighing_factor = 0
 
     def forward(self,x,t,y=None):
         x1 = self.MLP(x,t,y)
         x2 = self.CNN(x,t,y)
         weighing_factor = F.sigmoid(self.learnable_weight_time(t.unsqueeze(-1).float())).unsqueeze(-1)
+        self.weighing_factor = weighing_factor
         x = x1 * (1-weighing_factor) + x2* weighing_factor
         return x
 
