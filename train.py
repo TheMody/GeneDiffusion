@@ -2,7 +2,7 @@
 import torch
 from diffusion_Process import GuassianDiffusion
 from unets import UNet, UNet1d, PosSensitiveUnet, PosSensitiveUnetDeep
-from model import  Unet2D, UnetMLP
+from model import  Unet2D, UnetMLP, UnetMLPandCNN
 from dataloader import *
 import wandb
 from utils import *
@@ -24,6 +24,8 @@ def train_diffusion():
   #  model = torch.load("modellarge.pt")
     if model_name == "UnetMLP":
         model = UnetMLP(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
+    if model_name == "UnetCombined":
+        model = UnetMLPandCNN(channels_CNN = num_channels,channels_MLP = num_channels*gene_size,  base_width=base_width,num_classes=num_classes+1).to(device)
     if model_name == "Unet":
         model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=base_width).to(device)
     if model_name == "PosSensitive":

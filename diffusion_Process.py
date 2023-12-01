@@ -94,7 +94,7 @@ class GuassianDiffusion:
         return (xt -unsqueeze3x((1 - self.scalars.alpha_bar[t]).sqrt()) * eps) / unsqueeze3x(self.scalars.alpha_bar[t].sqrt())
 
     def sample_from_reverse_process(
-        self, model, xT, timesteps=None, y = None, ddim=False, guidance= "normal", w = 3.0
+        self, model, xT, start_timesteps=None, end_timestep = 0, y = None, ddim=False, guidance= "normal", w = 3.0
     ):
         """Sampling images by iterating over all timesteps.
 
@@ -124,7 +124,7 @@ class GuassianDiffusion:
         #     self.alpha_bar_scheduler, timesteps, self.device, new_betas
         # )
 
-        for t in range(timesteps , 0, -1):
+        for t in range(start_timesteps , end_timestep, -1):
             print(f'sampling timestep {t:3d}', end='\r')
             with torch.no_grad():
                 current_t = torch.tensor([t] * len(final), device=final.device)
