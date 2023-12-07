@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import math
+from config import *
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -113,6 +114,7 @@ class UpsamplingBlockMLP(nn.Module):
         self.norm = nn.GroupNorm(32,output_size)
         self.t_emb_linear = nn.Linear(1, output_size)
         self.c_emb_linear = nn.Linear(c_emb_dim, output_size)
+      #  self.emb_linear = nn.Linear(output_size*2, 2*output_size)
     
     def forward(self,x, x_skip, t_emb, c_emb = None):
         
@@ -120,6 +122,15 @@ class UpsamplingBlockMLP(nn.Module):
         skip = x
         x = self.norm(x)
         x = F.silu(self.lin2(torch.cat((x,x_skip), dim = 1)))
+        # temb = self.t_emb_linear(t_emb.unsqueeze(-1).float())
+        # if c_emb == None:
+        #     cemb = torch.zeros_like(temb)
+        # else:
+        #     cemb = self.c_emb_linear(c_emb.float())
+        # emb_out = self.emb_linear(F.silu(torch.cat((temb,cemb), dim = 1)))
+        # scale, shift = torch.chunk(emb_out, 2, dim=1)
+        # x = x * (1 + scale) + shift
+
         emb = self.t_emb_linear(t_emb.unsqueeze(-1).float())
         if c_emb == None:
             x = x + emb
@@ -157,7 +168,7 @@ class UnetMLP(nn.Module):
             nn.Linear(hidden_dim[0], output_channel),
             )
 
-    def forward(self,x,t,y=None):
+    def forward(self,x,t,y=None, output_bottleneck = False):
         shape = x.shape
         x = x.flatten(1)
         x_skips = []
@@ -169,13 +180,16 @@ class UnetMLP(nn.Module):
             x_skips.append(x_skip)
       #  print(x.shape)
         x = self.bottleNeck(x)
+        bottleneck = x
         for block in self.upBlock:
          #   print(x.shape)
          #   print(x_skips[-1].shape)
-            x = block(x, x_skips.pop(),t,y)
+            x = block(x, x_skips.pop(),t/max_steps,y)
        # print(x.shape)
         x = self.out(x)+x_skips.pop()
         x = x.reshape(shape)
+        if output_bottleneck:
+            return x, bottleneck
         return x
 
 
@@ -191,7 +205,7 @@ class UnetMLPandCNN(nn.Module):
     def forward(self,x,t,y=None):
         x1 = self.MLP(x,t,y)
         x2 = self.CNN(x,t,y)
-        weighing_factor = F.sigmoid(self.learnable_weight_time(t.unsqueeze(-1).float())).unsqueeze(-1)
+        weighing_factor = F.sigmoid(self.learnable_weight_time(t.unsqueeze(-1).float()/max_steps)).unsqueeze(-1)
         self.weighing_factor = weighing_factor
         x = x1 * (1-weighing_factor) + x2* weighing_factor
         return x
@@ -220,30 +234,29 @@ class PositionalEncoding(nn.Module):
 
 class EncoderModel(nn.Module):
     #input should be (batchsize, num_pcas, dim_pcas)
-    def __init__(self, num_classes=2, input_dim = 8):
+    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 512):
         super().__init__()
-        hidden_dim = 16
         self.dense1 = nn.Linear(input_dim, hidden_dim)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=1, batch_first=True, activation='gelu')
-        self.PositionalEncoding = PositionalEncoding(hidden_dim, max_len=18279)
-        self.dense2 = nn.Linear(hidden_dim, hidden_dim)
-       # 
-       # self.dense1 = nn.Linear(num_input, hidden_dim)
-       # self.dense2 = nn.Linear(hidden_dim, hidden_dim)
-      #  self.dense3 = nn.Linear(64, hidden_dim)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=1,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=1,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.PositionalEncoding = nn.Embedding(18432, hidden_dim)
+        self.encoding_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
+        nn.init.uniform_(self.encoding_token, a=-1/math.sqrt(hidden_dim), b=1/math.sqrt(hidden_dim))
+        #self.dense2 = nn.Linear(hidden_dim, hidden_dim)
         self.dense3 = nn.Linear(hidden_dim, num_classes)
 
     def forward(self, x):
-      #  print(x.shape)
-      #  print(x.type())
+
         x = self.dense1(x)
-        x = self.PositionalEncoding(x)
-       # x = self.encoder_layer(x)[:,0,:]
-       # x,_ = torch.max(x, dim=1)#/x.shape[1]
-        x = torch.sum(x, dim=1)/x.shape[1]
-        x = F.gelu(self.dense2(x))
-      #  x = F.gelu(self.dense2(x))
-     #   x = F.gelu(self.dense3(x))
+        pos_input = torch.zeros(batch_size, x.shape[1]).long().to(device)
+        for i in range(x.shape[1]):
+            pos_input[:,i] = i
+        x += self.PositionalEncoding(pos_input)
+        encoding_token = torch.stack([self.encoding_token.unsqueeze(0) for _ in range(x.shape[0])])
+        x = torch.cat((encoding_token,x),dim = 1)
+        x = self.encoder_layer(x)
+        x = self.encoder_layer2(x)[:,0,:]
+        #x = F.gelu(self.dense2(x))
         return F.softmax(self.dense3(x), dim=1)
 
 class MultichannelLinear(nn.Module): #maybe this is missing the bias term
@@ -305,6 +318,7 @@ class MLPModel(nn.Module):
     def __init__(self, num_classes=2, num_input = 8 * 18432):
         super().__init__()
         hidden_dim = 512
+        
         self.dense1 = nn.Linear(num_input, hidden_dim)
      #   self.dense2 = nn.Linear(hidden_dim, hidden_dim)
         self.linears = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for i in range(2)])
@@ -318,4 +332,25 @@ class MLPModel(nn.Module):
             x = F.gelu(self.linears[i*2](x))
             x = F.gelu(self.linears[i*2+1](x2)) +x2
     #    x = F.gelu(self.dense2(x))
+        return F.softmax(self.dense3(x), dim=1)
+
+class ConvclsModel(nn.Module):
+    def __init__(self, num_classes=2, input_dim = 8):
+        super().__init__()
+        hidden_dim = 64
+        self.multilin = MultichannelLinear(18432, input_dim, 32)
+        self.conv1 = nn.Conv1d(32, hidden_dim, 3, stride = 2)
+        self.convs = nn.ModuleList([nn.Conv1d(hidden_dim, hidden_dim, 3, stride = 2) for i in range(3)])
+        
+        self.dense3 = nn.Linear(73664, num_classes)
+
+    def forward(self, x):
+        x = F.gelu(self.multilin(x))
+        x = x.permute(0,2,1)
+        x = F.gelu(self.conv1(x))
+        for conv in self.convs:
+            x = F.gelu(conv(x))
+        x = x.flatten(1)
+       # print(x.shape)
+        #x = torch.mean(x, dim = 2)
         return F.softmax(self.dense3(x), dim=1)

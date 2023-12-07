@@ -66,9 +66,9 @@ def train_diffusion():
                 #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
                 #mask out label with 10% probability
-                random__label_masks = torch.rand(labels.size()).to(device)
-                random__label_masks = random__label_masks > 0.1
-                labels = torch.where(random__label_masks, labels, num_classes)      
+                # random__label_masks = torch.rand(labels.size()).to(device)
+                # random__label_masks = random__label_masks > 0.1
+                # labels = torch.where(random__label_masks, labels, num_classes)      
 
                # print(labels)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
@@ -150,6 +150,8 @@ def train_diffusion():
             histogramm = histogramm.cpu().numpy()
             plt.bar(np.arange(len(histogramm[:, 0])), histogramm[:, 0], width = 1)
             plt.yscale("log")
+            plt.xlabel("noise scaling t")
+            plt.ylabel("reconstruction error")
             plt.savefig(save_path+"/"+"histogramm.png")
             img = Image.open(save_path+"/"+"histogramm.png")
             log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps, "histogramm": wandb.Image(img)}
