@@ -237,8 +237,8 @@ class EncoderModel(nn.Module):
     def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 512):
         super().__init__()
         self.dense1 = nn.Linear(input_dim, hidden_dim)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=1,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=1,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=2,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=2,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         self.PositionalEncoding = nn.Embedding(18432, hidden_dim)
         self.encoding_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
         nn.init.uniform_(self.encoding_token, a=-1/math.sqrt(hidden_dim), b=1/math.sqrt(hidden_dim))
