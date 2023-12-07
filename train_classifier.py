@@ -30,7 +30,7 @@ def train_classifier():
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-    geneticDataSyn = SynGeneticDataset(path = "combined/")
+    geneticDataSyn = SynGeneticDataset()
   #  geneticDatatrain,_ = GeneticDataSets()
    # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
     train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)

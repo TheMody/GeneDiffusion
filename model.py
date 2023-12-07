@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 import math
+from config import *
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -191,7 +192,7 @@ class UnetMLPandCNN(nn.Module):
     def forward(self,x,t,y=None):
         x1 = self.MLP(x,t,y)
         x2 = self.CNN(x,t,y)
-        weighing_factor = F.sigmoid(self.learnable_weight_time(t.unsqueeze(-1).float())).unsqueeze(-1)
+        weighing_factor = F.sigmoid(self.learnable_weight_time(t.unsqueeze(-1).float())/max_steps).unsqueeze(-1)
         self.weighing_factor = weighing_factor
         x = x1 * (1-weighing_factor) + x2* weighing_factor
         return x
