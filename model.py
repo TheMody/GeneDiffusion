@@ -257,7 +257,7 @@ class EncoderModel(nn.Module):
         x = self.encoder_layer(x)
         x = self.encoder_layer2(x)[:,0,:]
         #x = F.gelu(self.dense2(x))
-        return F.softmax(self.dense3(x), dim=1)
+        return self.dense3(x)
 
 class MultichannelLinear(nn.Module): #maybe this is missing the bias term
     def __init__(self, channels, in_features, out_features,  down_project = 1):

@@ -7,15 +7,7 @@ from cosine_scheduler import CosineWarmupScheduler
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from config import *
-
-def preprocessing_function(x):
-   # x = x*max_value
-    # self.x-np.mean(self.x,axis=0)
-    # max = np.max(np.abs(self.x),axis=0)
-    # max[max == 0.0] +=1
-    # self.x = self.x / max
-    # self.x = self.x / 2 + 0.5
-    return x
+import time
 
 
 
@@ -47,6 +39,7 @@ def train_classifier():
         if step > max_step:
             break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
+                start = time.time()
                 optimizer.zero_grad()
                 accloss = 0.0
                 accacc = 0.0
@@ -78,7 +71,7 @@ def train_classifier():
                 if i % log_freq == 0:
                  #   acc = np.sum(np.argmax(outputs.detach().cpu().numpy(), axis = 1) == labels.detach().cpu().numpy())/labels.shape[0]
                     avg_loss = running_loss / log_freq # loss per batch
-                    log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0]}
+                    log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0], "time_per_step": time.time()-start}
                     wandb.log(log_dict)
                     running_loss = 0.
                     if i % 20 == 0:
