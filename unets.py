@@ -665,7 +665,7 @@ class UNetModel(nn.Module):
             zero_module(conv_nd(dims, input_ch, out_channels, 3, padding=1)),
         )
 
-    def forward(self, x, timesteps, y=None):
+    def forward(self, x, timesteps, y=None, output_bottleneck = False):
         """
         Apply the model to an input batch.
         :param x: an [N x C x ...] Tensor of inputs.
@@ -692,6 +692,7 @@ class UNetModel(nn.Module):
          #   print("h", h.shape)
             hs.append(h)
         h = self.middle_block(h, emb)
+        bottleneck = h
      #   print("h", h.shape)
         for module in self.output_blocks:
          #   print(h.shape)
@@ -700,6 +701,8 @@ class UNetModel(nn.Module):
             h = module(h, emb)
         #    print("h", h.shape)
         h = h.type(x.dtype)
+        if output_bottleneck:
+            return self.out(h), bottleneck
         return self.out(h)
 
 

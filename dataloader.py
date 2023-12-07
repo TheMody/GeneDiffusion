@@ -88,28 +88,28 @@ class SynGeneticDataset(Dataset):
 
 
 class GeneticDataset(Dataset):
-    def __init__(self, processed = True, normalize = normalize_data, label = None):
+    def __init__(self, processed = True, normalize = normalize_data, label = None, percent_unlabeled = percent_unlabeled):
         #super(GeneticDataset, self).__init__()
         self.x,self.y = load_data(processed = processed)
+        self.processed = processed
         self.label = label
         if normalize:
             xstd = np.std(self.x, axis = 0)
             xstd[xstd == 0.0] +=1
             self.x-np.mean(self.x,axis=0)
-           # max = np.max(np.abs(self.x))
-           # print(max)
-         #   max[max == 0.0] +=1
-            self.x = self.x / xstd #max
-          #  self.x = self.x / 2 + 0.5
-       # self.std = np.std(self.x,axis=0)
-       # self.std = F.pad(torch.tensor(self.std), (0,0,0, 18432 - self.std.shape[0]), "constant", 0).float()
-        #self.std[self.std == 0.0] +=1
-        self.processed = processed
+            self.x = self.x / xstd 
+        
+
+        if percent_unlabeled != 0:
+            self.y[:int(len(self.y)*percent_unlabeled)] = 2
+
         #now we shuffle x and y
         np.random.seed(42)
         p = np.random.permutation(len(self.x))
         self.x = self.x[p]
         self.y = self.y[p]
+        #print("mean label",np.mean(self.y)) #0.30677558865929844
+        
 
     def __len__(self):
         return len(self.x)
@@ -125,16 +125,16 @@ class GeneticDataset(Dataset):
             label = torch.tensor(self.label)
         return genome.float(), label
 
-def GeneticDataSets( processed = True, label = None):
-    dataset = GeneticDataset(processed, label = label)
+def GeneticDataSets( processed = True, label = None, percent_unlabeled = percent_unlabeled):
+    dataset = GeneticDataset(processed, label = label, percent_unlabeled = percent_unlabeled)
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
     generator1 = torch.Generator().manual_seed(42)
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size], generator = generator1)
     return train_dataset,test_dataset
 
-def GeneticDataloaders(batchsize, processed = True):
-    train_dataset,test_dataset = GeneticDataSets(processed)
+def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_unlabeled):
+    train_dataset,test_dataset = GeneticDataSets(processed, percent_unlabeled = percent_unlabeled)
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batchsize,
                                            shuffle=True)
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batchsize,

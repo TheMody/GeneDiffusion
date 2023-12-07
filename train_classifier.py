@@ -1,5 +1,5 @@
 import torch
-from model import MLPModel
+from model import MLPModel, ConvclsModel, EncoderModel
 from dataloader import  GeneticDataloaders, SynGeneticDataset, GeneticDataSets, GeneticDataset
 import numpy as np
 import wandb
@@ -17,16 +17,15 @@ def preprocessing_function(x):
     # self.x = self.x / 2 + 0.5
     return x
 
-# fucking_indices = torch.tensor([ 29299,  89739,  68694,  76602, 118027, 100418,  44750, 118571,  64339,
-#          42206,  44749,  90074, 144971, 100552,  84855,  81344, 135784,  55991,
-#           5022, 130592]).to(device).long()
+
 
 def train_classifier():
     #basic building blocks
-    model = MLPModel(num_input=num_channels*gene_size)#75584)#
-
+   # model = MLPModel(num_input=num_channels*gene_size)#75584)#
+  #  model = ConvclsModel(input_dim=num_channels)
+    model = EncoderModel()
     model = model.to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr_classifier)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr_classifier)
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
@@ -36,15 +35,17 @@ def train_classifier():
     train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
    # genedata = GeneticDataset()
    # std = genedata.std.to(device)
-    _,test_dataloader = GeneticDataloaders(config["batch_size"], True)
+    train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
+    max_step = 10000/16*5
+    scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
-    scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
-
-  #  encoder_model = torch.load( save_path+"/"+"vaemodel.pt")
     running_loss = 0.0
     best_acc = 0.0
+    step = 0
     for epoch in range(epochs_classifier):
         dataloader_iter = iter(train_dataloader)
+        if step > max_step:
+            break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 optimizer.zero_grad()
                 accloss = 0.0
@@ -52,9 +53,7 @@ def train_classifier():
                 for micro_step in range(gradient_accumulation_steps):
                     inputs, labels = next(dataloader_iter)
                     inputs = inputs.float().to(device)
-                    #inputs = preprocessing_function(inputs)
-                   # print(inputs[0])
-                   # r_inputs = encoder_model(inputs.permute(0,2,1), train = False).permute(0,2,1)
+
                     labels = labels.to(device)
                  #   print(labels.shape)
                     outputs = model(inputs)
@@ -66,7 +65,7 @@ def train_classifier():
                         accloss += loss.item()
 
                     loss.backward()
-                    
+                step += 1
                 acc = accacc/gradient_accumulation_steps
 
                 # Adjust learning weights
