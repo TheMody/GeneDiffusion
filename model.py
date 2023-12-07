@@ -237,10 +237,13 @@ class EncoderModel(nn.Module):
     def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 512):
         super().__init__()
         self.dense1 = nn.Linear(input_dim, hidden_dim)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=2,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=2,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=1,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=1,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         self.PositionalEncoding = nn.Embedding(18432, hidden_dim)
         self.encoding_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
+        self.pos_input = torch.zeros(batch_size, gene_size).long().to(device)
+        for i in range(gene_size):
+            self.pos_input[:,i] = i
         nn.init.uniform_(self.encoding_token, a=-1/math.sqrt(hidden_dim), b=1/math.sqrt(hidden_dim))
         #self.dense2 = nn.Linear(hidden_dim, hidden_dim)
         self.dense3 = nn.Linear(hidden_dim, num_classes)
@@ -248,10 +251,8 @@ class EncoderModel(nn.Module):
     def forward(self, x):
 
         x = self.dense1(x)
-        pos_input = torch.zeros(batch_size, x.shape[1]).long().to(device)
-        for i in range(x.shape[1]):
-            pos_input[:,i] = i
-        x += self.PositionalEncoding(pos_input)
+        
+        x += self.PositionalEncoding(self.pos_input)
         encoding_token = torch.stack([self.encoding_token.unsqueeze(0) for _ in range(x.shape[0])])
         x = torch.cat((encoding_token,x),dim = 1)
         x = self.encoder_layer(x)
