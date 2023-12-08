@@ -251,7 +251,10 @@ class EncoderModel(nn.Module):
     def forward(self, x):
 
         x = self.dense1(x)
-        
+        if self.pos_input.shape[0] != x.shape[0]:
+            self.pos_input = torch.zeros(x.shape[0], gene_size).long().to(device)
+            for i in range(gene_size):
+                self.pos_input[:,i] = i
         x += self.PositionalEncoding(self.pos_input)
         encoding_token = torch.stack([self.encoding_token.unsqueeze(0) for _ in range(x.shape[0])])
         x = torch.cat((encoding_token,x),dim = 1)
