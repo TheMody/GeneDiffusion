@@ -1,22 +1,23 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 2
-gradient_accumulation_steps = 16
-epochs = 100
+batch_size = 8
+gradient_accumulation_steps = 2
+epochs = 5
 epochs_vae = 4000
 epochs_classifier = 50
 max_steps = 500
 num_classes = 2
 num_channels = 8
 gene_size = 18432
-lr_classifier = 1e-3
+lr_classifier = 5e-5
 lr_diffusion = 2e-4
 lr_vae = 6e-4
 num_of_samples = 10000
 normalize_data = True
 kl_factor = 1e-2
 gradient_clip = 1
+mask_ratio = 0.7
 channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
 attention_resolutions = [32,64]#[32,128] #[32,64]
 base_width = 64

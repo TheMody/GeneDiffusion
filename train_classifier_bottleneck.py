@@ -1,5 +1,6 @@
 import torch
-from model import MLPModel, ConvclsModel, EncoderModel
+import torch.nn.functional as F
+from model import MLPModel, ConvclsModel
 from dataloader import  GeneticDataloaders, SynGeneticDataset, GeneticDataSets, GeneticDataset
 import numpy as np
 import wandb
@@ -7,29 +8,32 @@ from cosine_scheduler import CosineWarmupScheduler
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from config import *
-import time
 
 
+class LinearBottleneckModel(torch.nn.Module):
+  def __init__(self, bottleneck_dims = 256) -> None:
+      super().__init__()
+      self.diffmodel = torch.load(save_path+"/"+"model.pt")#torch.load("model.pt")#
+    #   for param in self.diffmodel.parameters():
+    #     param.requires_grad = False
+      self.linear = torch.nn.Linear(bottleneck_dims, num_classes)
 
-def train_classifier(model = None):
+  def forward(self, x):
+      x = x.permute(0,2,1)
+      y = torch.zeros( (x.shape[0],), dtype=torch.int64).to(device) +num_classes
+      t = torch.zeros( (x.shape[0],), dtype=torch.int64).to(device)
+      x,bottleneck = self.diffmodel(x, t,y, output_bottleneck=True)
+    #  print(bottleneck.shape)
+      return self.linear(bottleneck.flatten(1))
+
+
+def train_classifier():
     #basic building blocks
-   # model = MLPModel(num_input=num_channels*gene_size)#75584)#
-  #  model = ConvclsModel(input_dim=num_channels)
-    #model = EncoderModel()
-    if model is None:
-        model = EncoderModel()
-    #model = torch.load("pretrained_models/model.pt")
+    model = LinearBottleneckModel()
     model = model.to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr_classifier)
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
-    #data
-  #  geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")
-  #  geneticDatatrain,_ = GeneticDataSets()
-   # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
-  #  train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
-   # genedata = GeneticDataset()
-   # std = genedata.std.to(device)
     train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
     max_step = 10000/16*5
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
@@ -42,7 +46,6 @@ def train_classifier(model = None):
         if step > max_step:
             break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
-                start = time.time()
                 optimizer.zero_grad()
                 accloss = 0.0
                 accacc = 0.0
@@ -55,7 +58,7 @@ def train_classifier(model = None):
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
                     with torch.no_grad():
-                        accacc += (torch.sum(torch.argmax(outputs, axis = 1) ==labels)/labels.shape[0]).item()
+                        accacc += torch.sum(torch.argmax(outputs, axis = 1) ==labels)/labels.shape[0]
                         accloss += loss.item()
 
                     loss.backward()
@@ -70,9 +73,8 @@ def train_classifier(model = None):
                 log_freq = 1
                 running_loss += accloss
                 if i % log_freq == 0:
-                 #   acc = np.sum(np.argmax(outputs.detach().cpu().numpy(), axis = 1) == labels.detach().cpu().numpy())/labels.shape[0]
                     avg_loss = running_loss / log_freq # loss per batch
-                    log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0], "time_per_step": time.time()-start}
+                    log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0]}
                     wandb.log(log_dict)
                     running_loss = 0.
                     if i % 20 == 0:
@@ -87,8 +89,6 @@ def train_classifier(model = None):
                 inputs, labels = data
               #  print(inputs.shape)
                 inputs = inputs.float().to(device)
-              #  print(inputs[0])
-                #inputs = preprocessing_function(inputs)
                 labels = labels.to(device)
                 outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
