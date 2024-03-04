@@ -28,7 +28,7 @@ def train_classifier():
    # genedata = GeneticDataset()
    # std = genedata.std.to(device)
     train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
-    max_step = 10000/16*5
+    max_step = 100000/16*5
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
     running_loss = 0.0
