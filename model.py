@@ -215,8 +215,6 @@ class PositionalEncoding(nn.Module):
 
     def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
         super().__init__()
-     #   self.dropout = nn.Dropout(p=dropout)
-
         position = torch.arange(max_len).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
         pe = torch.zeros(max_len, 1, d_model)
@@ -231,55 +229,122 @@ class PositionalEncoding(nn.Module):
         """
         x = x + self.pe[:x.size(0)]
         return x
+    
+
+class EncoderModelPreTrain(nn.Module):
+    #input should be (batchsize, num_pcas, dim_pcas)
+    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 384):
+        super().__init__()
+       # self.dense1 = nn.Linear(input_dim, hidden_dim)
+        self.EmbeddingLayer = MultichannelLinear(18432, input_dim, hidden_dim,16)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer3 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+      #  self.encoder_layer4 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+       # self.encoder_layer5 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer6 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        # self.PositionalEncoding = nn.Embedding(gene_size, hidden_dim)
+        self.classification_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
+        # self.pos_input = torch.zeros(batch_size, gene_size).long().to(device)
+        # for i in range(gene_size):
+        #     self.pos_input[:,i] = i
+        nn.init.uniform_(self.classification_token, a=-1/math.sqrt(hidden_dim), b=1/math.sqrt(hidden_dim))
+        #self.dense2 = nn.Linear(hidden_dim, hidden_dim)
+        self.DeEmbeddingLayer = MultichannelLinear(18432//16, hidden_dim, input_dim,16, up = True)
+        self.dense = nn.Linear(hidden_dim, num_classes)
+
+    def forward(self, x, last_hidden = False):
+
+        x = self.EmbeddingLayer(x)
+      #  x = self.dense1(x)
+       # x += self.PositionalEncoding(self.pos_input)
+
+        classification_token = torch.stack([self.classification_token.unsqueeze(0) for _ in range(x.shape[0])])
+        x = torch.cat((classification_token,x),dim = 1)
+        x = self.encoder_layer(x)
+        x = self.encoder_layer2(x)
+        x = self.encoder_layer3(x)
+       # x = self.encoder_layer4(x)
+        #x = self.encoder_layer5(x)
+        x = self.encoder_layer6(x)#[:,0,:]
+        classification_token = x[:,0,:]
+        x = self.DeEmbeddingLayer(x[:,1:,:])
+        #x = F.gelu(self.dense2(x))
+        if last_hidden:
+            return x
+        return self.dense(classification_token)
 
 class EncoderModel(nn.Module):
     #input should be (batchsize, num_pcas, dim_pcas)
-    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 512):
+    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 384):
         super().__init__()
-        self.dense1 = nn.Linear(input_dim, hidden_dim)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=2,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=2,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-        self.PositionalEncoding = nn.Embedding(18432, hidden_dim)
+        self.EmbeddingLayer = MultichannelLinear(18432, input_dim, hidden_dim,16)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer3 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+      #  self.encoder_layer4 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+       # self.encoder_layer5 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer6 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+       # self.PositionalEncoding = nn.Embedding(18432, hidden_dim)
         self.encoding_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
-        self.pos_input = torch.zeros(batch_size, gene_size).long().to(device)
-        for i in range(gene_size):
-            self.pos_input[:,i] = i
+        # self.pos_input = torch.zeros(batch_size, gene_size).long().to(device)
+        # for i in range(gene_size):
+        #     self.pos_input[:,i] = i
         nn.init.uniform_(self.encoding_token, a=-1/math.sqrt(hidden_dim), b=1/math.sqrt(hidden_dim))
         #self.dense2 = nn.Linear(hidden_dim, hidden_dim)
         self.dense3 = nn.Linear(hidden_dim, num_classes)
 
-    def forward(self, x):
+    def forward(self, x, last_hidden = False):
 
-        x = self.dense1(x)
-        if self.pos_input.shape[0] != x.shape[0]:
-            self.pos_input = torch.zeros(x.shape[0], gene_size).long().to(device)
-            for i in range(gene_size):
-                self.pos_input[:,i] = i
-        x += self.PositionalEncoding(self.pos_input)
+      #  x = self.dense1(x)
+        x = self.EmbeddingLayer(x)
+     #   print(x.shape)
+        # if self.pos_input.shape[0] != x.shape[0]:
+        #     self.pos_input = torch.zeros(x.shape[0], gene_size).long().to(device)
+        #     for i in range(gene_size):
+        #         self.pos_input[:,i] = i
+        # x += self.PositionalEncoding(self.pos_input)
+
         encoding_token = torch.stack([self.encoding_token.unsqueeze(0) for _ in range(x.shape[0])])
         x = torch.cat((encoding_token,x),dim = 1)
         x = self.encoder_layer(x)
-        x = self.encoder_layer2(x)[:,0,:]
+        x = self.encoder_layer2(x)
+        x = self.encoder_layer3(x)
+       # x = self.encoder_layer4(x)
+        #x = self.encoder_layer5(x)
+        x = self.encoder_layer6(x)[:,0,:]
         #x = F.gelu(self.dense2(x))
+        if last_hidden:
+            return x
         return self.dense3(x)
 
 class MultichannelLinear(nn.Module): #maybe this is missing the bias term
-    def __init__(self, channels, in_features, out_features,  down_project = 1):
+    def __init__(self, channels, in_features, out_features,  project = 1, up = False):
         super(MultichannelLinear, self).__init__()
-        self.down_project = down_project
-        self.weight_pw = nn.Parameter(torch.empty(int(math.ceil(channels/down_project)), out_features, in_features*down_project))
-        self.weight_bias = nn.Parameter(torch.empty(int(math.ceil(channels/down_project)), out_features))
-        nn.init.uniform_(self.weight_pw, a=-1/math.sqrt(in_features*down_project), b=1/math.sqrt(in_features*down_project))
-        nn.init.uniform_(self.weight_bias, a=-1/math.sqrt(in_features*down_project), b=1/math.sqrt(in_features*down_project))
+        self.up = up
+        self.project = project
+        if not up:
+            self.weight_pw = nn.Parameter(torch.empty(int(math.ceil(channels/project)), out_features, in_features*project))
+            self.weight_bias = nn.Parameter(torch.empty(int(math.ceil(channels/project)), out_features))
+        else:
+            self.weight_pw = nn.Parameter(torch.empty(channels, out_features*project, in_features))
+            self.weight_bias = nn.Parameter(torch.empty(channels, out_features*project))
+        nn.init.uniform_(self.weight_pw, a=-1/math.sqrt(in_features*project), b=1/math.sqrt(in_features*project))
+        nn.init.uniform_(self.weight_bias, a=-1/math.sqrt(in_features*project), b=1/math.sqrt(in_features*project))
 
     def __call__(self, x):
-        if not self.down_project ==1:   
-            #reshape x to (batchsize, num_pcas/down_project, dim_pcas*down_project)
-            if x.shape[1] % self.down_project != 0:
-                x = F.pad(x, (0,0,0,self.down_project - x.shape[1] % self.down_project))
-            x = x.reshape(x.shape[0], int(x.shape[1]/self.down_project), x.shape[2]*self.down_project)
-            
-        x = torch.matmul(self.weight_pw.unsqueeze(0),x.unsqueeze(-1)).squeeze(-1) + self.weight_bias.unsqueeze(0)
+        if not self.up:
+            if not self.project ==1:   
+                #reshape x to (batchsize, num_pcas/down_project, dim_pcas*down_project)
+                if x.shape[1] % self.project != 0:
+                    x = F.pad(x, (0,0,0,self.project - x.shape[1] % self.project))
+                x = x.reshape(x.shape[0], int(x.shape[1]/self.project), x.shape[2]*self.project)
+                
+            x = torch.matmul(self.weight_pw.unsqueeze(0),x.unsqueeze(-1)).squeeze(-1) + self.weight_bias.unsqueeze(0)
+        else:
+            x = torch.matmul(self.weight_pw.unsqueeze(0),x.unsqueeze(-1)).squeeze(-1) + self.weight_bias.unsqueeze(0)
+            #reshape x from (batchisze, channels,in_features)to (batchsize, channels * project, out_features)
+            x = x.reshape(x.shape[0], int(x.shape[1]*self.project), int(x.shape[2]/self.project))
      #   print(x.shape)
         return x
 
@@ -336,7 +401,7 @@ class MLPModel(nn.Module):
             x = F.gelu(self.linears[i*2](x))
             x = F.gelu(self.linears[i*2+1](x2)) +x2
     #    x = F.gelu(self.dense2(x))
-        return F.softmax(self.dense3(x), dim=1)
+        return self.dense3(x)
 
 class ConvclsModel(nn.Module):
     def __init__(self, num_classes=2, input_dim = 8):

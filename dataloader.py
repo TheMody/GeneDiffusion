@@ -91,6 +91,7 @@ class GeneticDataset(Dataset):
     def __init__(self, processed = True, normalize = normalize_data, label = None, percent_unlabeled = percent_unlabeled):
         #super(GeneticDataset, self).__init__()
         self.x,self.y = load_data(processed = processed)
+
         self.processed = processed
         self.label = label
         if normalize:
@@ -108,6 +109,9 @@ class GeneticDataset(Dataset):
         p = np.random.permutation(len(self.x))
         self.x = self.x[p]
         self.y = self.y[p]
+
+      #  self.x = self.x[:1000]
+     #   self.y = self.y[:1000]
         #print("mean label",np.mean(self.y)) #0.30677558865929844
         
 
