@@ -282,7 +282,6 @@ class EncoderModel(nn.Module):
     #input should be (batchsize, num_pcas, dim_pcas)
     def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 384):
         super().__init__()
-        #self.dense1 = nn.Linear(input_dim, hidden_dim)
         self.EmbeddingLayer = MultichannelLinear(18432, input_dim, hidden_dim,16)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
