@@ -31,7 +31,7 @@ def train_pre_train():
     model = EncoderModelPreTrain()
     save_model = model.to(device)
     model = torch.compile(save_model)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr_pretrain)
     #loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
@@ -46,7 +46,7 @@ def train_pre_train():
     log_freq = 1
     for epoch in range(epochs_classifier):
         dataloader_iter = iter(train_dataloader)
-        if step >= max_step:
+        if step >= max_step-1:
             break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 start = time.time()
@@ -69,7 +69,7 @@ def train_pre_train():
                     loss.backward()
                 step += 1
               #  acc = accacc/gradient_accumulation_steps
-
+                torch.nn.utils.clip_grad_norm_(model.parameters(), gradient_clipping)
                 # Adjust learning weights
                 optimizer.step()
                 scheduler.step()
@@ -80,7 +80,7 @@ def train_pre_train():
                 ema_time = ema_time * 0.99 + time_taken * 0.01 #exponential moving average
                 ema_time_corrected = ema_time / (1 - 0.99 ** (step + 1 + epoch * len(train_dataloader)//gradient_accumulation_steps))#bias corrected ema
                 remaining_time = int((max_step - step) * ema_time_corrected)
-                print(f'estimated remaining time {remaining_time:3d} sec at step {step}/{len(train_dataloader)//gradient_accumulation_steps} of epoch {epoch}/{epochs}', end='\r')
+                print(f'estimated remaining time {remaining_time:3d} sec at step {step}/{(len(train_dataloader)//gradient_accumulation_steps)*epochs_classifier} steps', end='\r')
 
                 if i % log_freq == 0:
                     avg_loss = running_loss / log_freq # loss per batch

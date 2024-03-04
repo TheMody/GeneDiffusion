@@ -1,9 +1,9 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 2
-gradient_accumulation_steps = 8
-epochs = 50
+batch_size = 16
+gradient_accumulation_steps = 1
+epochs = 5
 epochs_vae = 4000
 epochs_classifier = 50
 max_steps = 500
@@ -11,6 +11,7 @@ num_classes = 2
 num_channels = 8
 gene_size = 18432
 lr_classifier = 5e-5
+lr_pretrain = 1e-4
 lr_diffusion = 2e-4
 lr_vae = 6e-4
 num_of_samples = 10000
@@ -18,6 +19,7 @@ normalize_data = True
 kl_factor = 1e-2
 gradient_clip = 1
 mask_ratio = 0.7
+gradient_clipping = 1.0
 channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
 attention_resolutions = [32,64]#[32,128] #[32,64]
 base_width = 64
@@ -37,6 +39,7 @@ config = {
     "gene_size": gene_size,
     "lr_classifier": lr_classifier,
     "lr_diffusion": lr_diffusion,
+    "lr_pretrain": lr_pretrain,
     "num_of_samples": num_of_samples,
     "save_path": save_path,
     "normalize_data": normalize_data,
@@ -47,5 +50,6 @@ config = {
     "attention_resolutions": attention_resolutions,
     "base_width": base_width,
     "percent_unlabeled": percent_unlabeled,
-    "label_proportion_for_generation": label_proportion_for_generation
+    "label_proportion_for_generation": label_proportion_for_generation,
+    "gradient_clipping": gradient_clipping
 }

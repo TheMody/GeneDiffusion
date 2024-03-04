@@ -39,7 +39,7 @@ def train_classifier(model = None):
     step = 0
     for epoch in range(epochs_classifier):
         dataloader_iter = iter(train_dataloader)
-        if step > max_step:
+        if step >= max_step-1:
             break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 start = time.time()

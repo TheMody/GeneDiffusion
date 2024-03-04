@@ -254,7 +254,7 @@ class EncoderModelPreTrain(nn.Module):
         self.DeEmbeddingLayer = MultichannelLinear(18432//16, hidden_dim, input_dim,16, up = True)
         self.dense = nn.Linear(hidden_dim, num_classes)
 
-    def forward(self, x, last_hidden = False):
+    def forward(self, x, last_hidden = False, embedding = False):
 
         x = self.EmbeddingLayer(x)
       #  x = self.dense1(x)
@@ -272,6 +272,9 @@ class EncoderModelPreTrain(nn.Module):
     #     #x = self.encoder_layer5(x)
     #     x = self.encoder_layer6(x)#[:,0,:]
         classification_token = x[:,0,:]
+
+        if embedding:
+            return x
         x = self.DeEmbeddingLayer(x[:,1:,:])
         #x = F.gelu(self.dense2(x))
         if last_hidden:
