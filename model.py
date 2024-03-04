@@ -233,16 +233,17 @@ class PositionalEncoding(nn.Module):
 
 class EncoderModelPreTrain(nn.Module):
     #input should be (batchsize, num_pcas, dim_pcas)
-    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 384):
+    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 768,n_layers = 12):
         super().__init__()
        # self.dense1 = nn.Linear(input_dim, hidden_dim)
         self.EmbeddingLayer = MultichannelLinear(18432, input_dim, hidden_dim,16)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-        self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-        self.encoder_layer3 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-      #  self.encoder_layer4 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-       # self.encoder_layer5 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-        self.encoder_layer6 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.module_list = nn.ModuleList([nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=12,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu') for i in range(n_layers)])
+    #     self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+    #     self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+    #     self.encoder_layer3 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+    #   #  self.encoder_layer4 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+    #    # self.encoder_layer5 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+    #     self.encoder_layer6 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         # self.PositionalEncoding = nn.Embedding(gene_size, hidden_dim)
         self.classification_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
         # self.pos_input = torch.zeros(batch_size, gene_size).long().to(device)
@@ -261,12 +262,15 @@ class EncoderModelPreTrain(nn.Module):
 
         classification_token = torch.stack([self.classification_token.unsqueeze(0) for _ in range(x.shape[0])])
         x = torch.cat((classification_token,x),dim = 1)
-        x = self.encoder_layer(x)
-        x = self.encoder_layer2(x)
-        x = self.encoder_layer3(x)
-       # x = self.encoder_layer4(x)
-        #x = self.encoder_layer5(x)
-        x = self.encoder_layer6(x)#[:,0,:]
+        for layer in self.module_list:
+            x = layer(x)
+    
+    #     x = self.encoder_layer(x)
+    #     x = self.encoder_layer2(x)
+    #     x = self.encoder_layer3(x)
+    #    # x = self.encoder_layer4(x)
+    #     #x = self.encoder_layer5(x)
+    #     x = self.encoder_layer6(x)#[:,0,:]
         classification_token = x[:,0,:]
         x = self.DeEmbeddingLayer(x[:,1:,:])
         #x = F.gelu(self.dense2(x))
@@ -283,8 +287,8 @@ class EncoderModel(nn.Module):
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         self.encoder_layer3 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-      #  self.encoder_layer4 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-       # self.encoder_layer5 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer4 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
+        self.encoder_layer5 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         self.encoder_layer6 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
        # self.PositionalEncoding = nn.Embedding(18432, hidden_dim)
         self.encoding_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
@@ -311,8 +315,8 @@ class EncoderModel(nn.Module):
         x = self.encoder_layer(x)
         x = self.encoder_layer2(x)
         x = self.encoder_layer3(x)
-       # x = self.encoder_layer4(x)
-        #x = self.encoder_layer5(x)
+        x = self.encoder_layer4(x)
+        x = self.encoder_layer5(x)
         x = self.encoder_layer6(x)[:,0,:]
         #x = F.gelu(self.dense2(x))
         if last_hidden:

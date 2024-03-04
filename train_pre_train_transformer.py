@@ -29,7 +29,8 @@ def mae_loss_masked(input, target, mask):
 def train_pre_train():
     #basic building blocks
     model = EncoderModelPreTrain()
-    model = model.to(device)
+    save_model = model.to(device)
+    model = torch.compile(save_model)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
     #loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
@@ -41,6 +42,8 @@ def train_pre_train():
     running_loss = 0.0
     best_loss = 1e10
     step = 0
+    ema_time = 0.0
+    log_freq = 1
     for epoch in range(epochs_classifier):
         dataloader_iter = iter(train_dataloader)
         if step >= max_step:
@@ -49,7 +52,6 @@ def train_pre_train():
                 start = time.time()
                 optimizer.zero_grad()
                 accloss = 0.0
-                accacc = 0.0
                 for micro_step in range(gradient_accumulation_steps):
                     inputs, _ = next(dataloader_iter)
                     inputs = inputs.float().to(device)
@@ -73,16 +75,21 @@ def train_pre_train():
                 scheduler.step()
 
                 # Gather data and report
-                log_freq = 1
                 running_loss += accloss
+                time_taken = time.time() - start
+                ema_time = ema_time * 0.99 + time_taken * 0.01 #exponential moving average
+                ema_time_corrected = ema_time / (1 - 0.99 ** (step + 1 + epoch * len(train_dataloader)//gradient_accumulation_steps))#bias corrected ema
+                remaining_time = int((max_step - step) * ema_time_corrected)
+                print(f'estimated remaining time {remaining_time:3d} sec at step {step}/{len(train_dataloader)//gradient_accumulation_steps} of epoch {epoch}/{epochs}', end='\r')
+
                 if i % log_freq == 0:
-                 #   acc = np.sum(np.argmax(outputs.detach().cpu().numpy(), axis = 1) == labels.detach().cpu().numpy())/labels.shape[0]
                     avg_loss = running_loss / log_freq # loss per batch
-                    log_dict = {"avg_loss_classifier": avg_loss,  "lr_classifier": scheduler.get_lr()[0], "time_per_step": time.time()-start}
+                    log_dict = {"avg_loss_classifier": avg_loss,  "lr_classifier": scheduler.get_lr()[0], "time_per_step": time_taken}
                     wandb.log(log_dict)
                     running_loss = 0.
                     if i % 20 == 0:
                         print('  batch {} loss: {} '.format(i + 1, avg_loss))
+
                         
 
         # #evaluate model after epoch
@@ -108,7 +115,7 @@ def train_pre_train():
             print(' test epoch {} loss: {} '.format(epoch+1, avg_loss))
         if avg_loss < best_loss:
             best_loss = avg_loss
-            torch.save(model,"pretrained_models/model.pt")
+            torch.save(save_model,"pretrained_models/model.pt")
             print(f"saved new best model with best_loss {best_loss}")
 
     return torch.load("pretrained_models/model.pt")
