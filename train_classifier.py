@@ -1,5 +1,5 @@
 import torch
-from model import MLPModel, ConvclsModel, EncoderModel
+from model import MLPModel, ConvclsModel, EncoderModel, EncoderModelPreTrain
 from dataloader import  GeneticDataloaders, SynGeneticDataset, GeneticDataSets, GeneticDataset
 import numpy as np
 import wandb
@@ -13,24 +13,24 @@ import time
 
 def train_classifier(model = None):
     #basic building blocks
-   # model = MLPModel(num_input=num_channels*gene_size)#75584)#
+    model = MLPModel(num_input=num_channels*gene_size)#75584)#
   #  model = ConvclsModel(input_dim=num_channels)
     #model = EncoderModel()
-    if model is None:
-        model = EncoderModel()
+  #  if model is None:
+     #   model = EncoderModelPreTrain()
     #model = torch.load("pretrained_models/model.pt")
     model = model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-  #  geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")
+    geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")
   #  geneticDatatrain,_ = GeneticDataSets()
    # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
-  #  train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
+    train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
    # genedata = GeneticDataset()
    # std = genedata.std.to(device)
-    train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
+    _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
     max_step = 100000/16*5
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 

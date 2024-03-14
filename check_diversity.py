@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from config import *
 
 def check_diversity_by_closest():
-    geneticDataSyn = SynGeneticDataset()
+    geneticDataSyn = SynGeneticDataset("syn_data_PosSensitive/")
     geneticData = GeneticDataset()
 
 
@@ -30,7 +30,7 @@ def check_diversity_by_closest():
         print(np.mean(all_min_dist))
 
     find_closest(geneticDataSyn)
-    find_closest(geneticData)
+    #find_closest(geneticData)
             
 if __name__ == "__main__":
     check_diversity_by_closest()

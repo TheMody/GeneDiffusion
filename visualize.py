@@ -15,6 +15,10 @@ def plot_histogramm(x):
 
 if __name__ == '__main__':
     train_dataloader,val_dataloader = GeneticDataloaders(config["batch_size"], True)
+
+    geneticData = SynGeneticDataset("UnetMLP_working/")
+    syn_dataloader2 = DataLoader(geneticData, batch_size=config["batch_size"])
+
     geneticData = SynGeneticDataset("syn_data_PosSensitive/")
     syn_dataloader = DataLoader(geneticData, batch_size=config["batch_size"])
 
@@ -37,19 +41,20 @@ if __name__ == '__main__':
         return data.numpy(), out_label
 
     syn_data, syn_data_labels = draw_samples(syn_dataloader, num_samples)
+    syn_data2, syn_data_labels2 = draw_samples(syn_dataloader2, num_samples)
     train_data, train_data_labels = draw_samples(train_dataloader, num_samples)
     val_data, val_data_labels = draw_samples(val_dataloader, num_samples)
-    syn_data = syn_data#.transpose(0,2,1)
+   # syn_data = syn_data#.transpose(0,2,1)
     print(syn_data_labels.shape)
     print(train_data_labels.shape)
     print(val_data_labels.shape)
 
-    combined_data = np.concatenate([syn_data, train_data, val_data], axis=0)
+    combined_data = np.concatenate([syn_data,syn_data2, train_data, val_data], axis=0)
     combined_data = combined_data.reshape(combined_data.shape[0], -1)
     print(combined_data.shape)
 
-    combined_labels = np.concatenate([syn_data_labels, train_data_labels+2, val_data_labels+4])
-    combined_labels = np.concatenate([np.zeros(len(syn_data_labels)), np.zeros(len(train_data_labels))+1, np.zeros(len(val_data_labels))+2])
+ #   combined_labels = np.concatenate([syn_data_labels,syn_data_labels2 +6, train_data_labels+2, val_data_labels+4])
+    combined_labels = np.concatenate([np.zeros(len(syn_data_labels)),np.zeros(len(syn_data_labels2))+3, np.zeros(len(train_data_labels))+1, np.zeros(len(val_data_labels))+2])
   #  print(combined_labels)
     #preprocess with PCA
    # print("computing PCA")
@@ -63,7 +68,7 @@ if __name__ == '__main__':
 
    # Create a color bar
     cbar = plt.colorbar()
-    cbar.set_label('Original Labels', rotation=270)
+    cbar.set_label('Data source', rotation=270)
 
    # plt.legend()
 

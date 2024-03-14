@@ -11,7 +11,7 @@ def generate_sample(model,num_samples = num_of_samples, save = True, savefolder 
       label = (torch.rand(config["batch_size"]) <  label_proportion_for_generation).long().to(device)
       # label = torch.randint(num_classes, (config["batch_size"],), dtype=torch.int64).to(device)
       print("at timestep:",i, "generating samples with label" ,label)
-      sample = diffusion.sample_from_reverse_process(model,xt, start_timesteps=max_steps-1,y= label, guidance = "normal", w = 0.1)
+      sample = diffusion.sample_from_reverse_process(model,xt, timesteps=max_steps,y= label, guidance = "normal",ddim=False, w = 0.1)
       if save:
          for a in range(config["batch_size"]):
             torch.save((sample[a].cpu().detach(),  label[a].cpu().detach()), savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
@@ -35,9 +35,9 @@ def generate_sample_combined(model1, model2, num_steps_combine = 75,num_samples 
    return sample
 
 if __name__ == '__main__':
-   model1 = torch.load(save_path +"/model.pt").to(device).eval()
-  # model2 = torch.load("Unetmodel.pt").to(device).eval()
-   generate_sample(model1, num_samples = num_of_samples, save = True)
+   #model1 = torch.load(save_path +"/model.pt").to(device).eval()
+   model = torch.load("syn_data_PosSensitive/model.pt").to(device).eval()
+   generate_sample(model, num_samples = num_of_samples, save = True, savefolder= "PosSensitive")
   # generate_sample_combined(model1, model2, num_samples = num_of_samples, save = True, savefolder= "combined")
 
  

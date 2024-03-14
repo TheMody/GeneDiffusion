@@ -233,11 +233,11 @@ class PositionalEncoding(nn.Module):
 
 class EncoderModelPreTrain(nn.Module):
     #input should be (batchsize, num_pcas, dim_pcas)
-    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 768,n_layers = 12):
+    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 384,n_layers = 12):
         super().__init__()
        # self.dense1 = nn.Linear(input_dim, hidden_dim)
         self.EmbeddingLayer = MultichannelLinear(18432, input_dim, hidden_dim,16)
-        self.module_list = nn.ModuleList([nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=12,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu') for i in range(n_layers)])
+        self.module_list = nn.ModuleList([nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu') for i in range(n_layers)])
     #     self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
     #     self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
     #     self.encoder_layer3 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
@@ -265,19 +265,12 @@ class EncoderModelPreTrain(nn.Module):
         for layer in self.module_list:
             x = layer(x)
     
-    #     x = self.encoder_layer(x)
-    #     x = self.encoder_layer2(x)
-    #     x = self.encoder_layer3(x)
-    #    # x = self.encoder_layer4(x)
-    #     #x = self.encoder_layer5(x)
-    #     x = self.encoder_layer6(x)#[:,0,:]
         classification_token = x[:,0,:]
 
         if embedding:
             return x
-        x = self.DeEmbeddingLayer(x[:,1:,:])
-        #x = F.gelu(self.dense2(x))
         if last_hidden:
+            x = self.DeEmbeddingLayer(x[:,1:,:])
             return x
         return self.dense(classification_token)
 

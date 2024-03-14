@@ -92,6 +92,8 @@ class GeneticDataset(Dataset):
         #super(GeneticDataset, self).__init__()
         self.x,self.y = load_data(processed = processed)
 
+        print("len of dataset", len(self.x))
+        
         self.processed = processed
         self.label = label
         if normalize:

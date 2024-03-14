@@ -162,6 +162,8 @@ def train_diffusion():
                 minloss = acc_rec_error/avglosssteps
                 print("saving model at epoch: "  + str(e) +" ,with loss: "+ str(acc_rec_error/avglosssteps) )
                 torch.save(model, save_path+"/"+"model.pt")
+
+                
 if __name__ == '__main__':
     train_diffusion()
    # wandb.finish()
