@@ -231,6 +231,43 @@ class PositionalEncoding(nn.Module):
         return x
     
 
+class EncoderModelDiffusion(nn.Module):
+    #input should be (batchsize, num_pcas, dim_pcas)
+    def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 384,n_layers = 12):
+        super().__init__()
+        self.num_classes = num_classes
+        self.EmbeddingLayer = MultichannelLinear(18432, input_dim, hidden_dim,16)
+        self.module_list = nn.ModuleList([nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu') for i in range(n_layers)])
+        self.classification_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
+        nn.init.uniform_(self.classification_token, a=-1/math.sqrt(hidden_dim), b=1/math.sqrt(hidden_dim))
+        self.time_embedding = nn.Linear(1, hidden_dim)
+        self.class_embedding = nn.Embedding(num_classes, hidden_dim)
+        self.c_emb_linear = nn.Linear(hidden_dim, hidden_dim)
+        self.DeEmbeddingLayer = MultichannelLinear(18432//16, hidden_dim, input_dim,16, up = True)
+        self.dense = nn.Linear(hidden_dim, num_classes)
+
+    def forward(self, x, t,y,last_hidden = True, embedding = False):
+        x = x.permute(0,2,1)
+        x = self.EmbeddingLayer(x)
+        classification_token = torch.stack([self.classification_token.unsqueeze(0) for _ in range(x.shape[0])])
+        
+        time_token = self.time_embedding(t.unsqueeze(-1).float()/max_steps).unsqueeze(1)
+        c_token = self.class_embedding(y).unsqueeze(1)
+        x = torch.cat((classification_token,time_token,c_token,x),dim = 1)
+
+        for layer in self.module_list:
+            x = layer(x)
+
+        classification_token = x[:,0,:]
+
+        if embedding:
+            return x
+        if last_hidden:
+            x = self.DeEmbeddingLayer(x[:,3:,:])
+            x = x.permute(0,2,1)
+            return x
+        return self.dense(classification_token)
+
 class EncoderModelPreTrain(nn.Module):
     #input should be (batchsize, num_pcas, dim_pcas)
     def __init__(self, num_classes=2, input_dim = 8,  hidden_dim = 384,n_layers = 12):

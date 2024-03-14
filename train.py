@@ -2,7 +2,7 @@
 import torch
 from diffusion_Process import GuassianDiffusion
 from unets import UNet, UNet1d, PosSensitiveUnet, PosSensitiveUnetDeep
-from model import  Unet2D, UnetMLP, UnetMLPandCNN
+from model import  Unet2D, UnetMLP, UnetMLPandCNN, EncoderModelDiffusion
 from dataloader import *
 import wandb
 from utils import *
@@ -24,6 +24,8 @@ def train_diffusion():
   #  model = torch.load("modellarge.pt")
     if model_name == "UnetMLP":
         model = UnetMLP(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
+    if model_name == "Transformer":
+        model = EncoderModelDiffusion().to(device)
     if model_name == "UnetCombined":
         model = UnetMLPandCNN(channels_CNN = num_channels,channels_MLP = num_channels*gene_size,  base_width=base_width,num_classes=num_classes+1).to(device)
     if model_name == "Unet":
@@ -76,6 +78,7 @@ def train_diffusion():
               #  print(torch.max(eps))
               #  print(torch.min(eps))
                 pred_eps = model(xt, t, y = labels)
+               # print(pred_eps.shape)
                 loss = critertion(pred_eps,eps)
                 
                 #print("abs_mean of reconstructed data",data_abs_mean(x_r))
@@ -91,7 +94,7 @@ def train_diffusion():
 
             optimizer.step()
 
-            if step % 100 == 0 and step != 0:
+            if step % 1 == 0 and step != 0:
                 print(f"epoch: {e}, step: {step}, loss: {avgloss/avglosssteps}")
                 avgloss = 0
                 avglosssteps = 0
