@@ -21,7 +21,7 @@ class GuassianDiffusion:
             self.alpha_bar_scheduler, self.timesteps, self.device
         )
 
-        self.clamp_x0 = lambda x: x.clamp(-1, 1)
+      #  self.clamp_x0 = lambda x: x.clamp(-1, 1)
         self.get_x0_from_xt_eps = lambda xt, eps, t, scalars: (
             #    self.clamp_x0(
                 1
