@@ -163,8 +163,8 @@ class GeneticDataset(Dataset):
         if self.label is not None:
             label = torch.tensor(self.label)
 
-        zero_mask = genome == 0
-        torch.save(zero_mask, "zero_mask.pt")
+        # zero_mask = genome == 0
+        # torch.save(zero_mask, "zero_mask.pt")
         
         return genome.float(), label
 

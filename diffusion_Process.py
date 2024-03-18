@@ -21,7 +21,7 @@ class GuassianDiffusion:
             self.alpha_bar_scheduler, self.timesteps, self.device
         )
 
-        self.zero_mask = torch.tensor(zero_mask).permute(1,0).unsqueeze(0)
+        self.zero_mask = torch.stack([torch.tensor(zero_mask).permute(1,0) for _ in range(batch_size)])
 
         def clamp_x0(x):
             x[self.zero_mask] = 0
