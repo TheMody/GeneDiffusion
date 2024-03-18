@@ -24,13 +24,13 @@ def train_classifier(model = None):
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-    geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")
+    geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")path = "UnetMLP_supergood/"
   #  geneticDatatrain,_ = GeneticDataSets()
    # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
     train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
    # genedata = GeneticDataset()
    # std = genedata.std.to(device)
-    _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
+    train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
     max_step = (num_of_samples-test_set_size)/(batch_size*gradient_accumulation_steps)*epochs_classifier
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
@@ -39,7 +39,7 @@ def train_classifier(model = None):
     step = 0
     for epoch in range(epochs_classifier):
         dataloader_iter = iter(train_dataloader)
-        if step >= max_step-1:
+        if step >= max_step-2:
             break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 start = time.time()
@@ -51,6 +51,10 @@ def train_classifier(model = None):
                     inputs = inputs.float().to(device)
 
                     labels = labels.to(device)
+                    # print("input",inputs.shape)
+                    # print(inputs[0])
+                    # print("labels",labels.shape)
+                    # print(labels[0])
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation
@@ -90,6 +94,10 @@ def train_classifier(model = None):
               #  print(inputs[0])
                 #inputs = preprocessing_function(inputs)
                 labels = labels.to(device)
+                # print("input",inputs.shape)
+                # print(inputs[0])
+                # print("labels",labels.shape)
+                # print(labels[0])
                 outputs = model(inputs)
                 loss = loss_fn(outputs, labels)
                 acc = torch.sum(torch.argmax(outputs, axis = 1) == labels)/labels.shape[0]

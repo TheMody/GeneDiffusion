@@ -49,7 +49,7 @@ def train_diffusion():
 
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
-    minloss = 10000
+    minloss = 1e10
     ema_time = 0.0
     for e in range(epochs):
         model.train()

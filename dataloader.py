@@ -84,6 +84,7 @@ class SynGeneticDataset(Dataset):
             label = torch.tensor(self.label)
       #  print(label)
         #label = F.one_hot(label.squeeze(),2)
+    #    print(genome)
         return genome.permute(1,0), label
 
 
@@ -145,6 +146,7 @@ class GeneticDataset(Dataset):
             print("len of train set", len(self.x))
 
 
+
         #print("mean label",np.mean(self.y)) #0.30677558865929844
         
 
@@ -160,6 +162,10 @@ class GeneticDataset(Dataset):
         label = torch.tensor(self.y[idx])
         if self.label is not None:
             label = torch.tensor(self.label)
+
+        zero_mask = genome == 0
+        torch.save(zero_mask, "zero_mask.pt")
+        
         return genome.float(), label
 
 def GeneticDataSets( processed = True, label = None, percent_unlabeled = percent_unlabeled):

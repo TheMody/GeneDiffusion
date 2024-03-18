@@ -19,7 +19,7 @@ if __name__ == '__main__':
     geneticData = SynGeneticDataset("UnetMLP_working/")
     syn_dataloader2 = DataLoader(geneticData, batch_size=config["batch_size"])
 
-    geneticData = SynGeneticDataset("syn_data_PosSensitive/")
+    geneticData = SynGeneticDataset("UnetMLP_supergood/")
     syn_dataloader = DataLoader(geneticData, batch_size=config["batch_size"])
 
     def draw_samples(dataloader,num_samples):

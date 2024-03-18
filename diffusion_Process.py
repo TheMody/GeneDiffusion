@@ -11,7 +11,7 @@ class GuassianDiffusion:
     2) L_simple training objective from https://arxiv.org/abs/2006.11239.
     """
 
-    def __init__(self, timesteps=1000, device="cuda:0"):
+    def __init__(self, timesteps=1000, device="cuda:0", zero_mask = zero_mask):
         self.timesteps = timesteps
         self.device = device
         self.alpha_bar_scheduler = (
@@ -21,13 +21,18 @@ class GuassianDiffusion:
             self.alpha_bar_scheduler, self.timesteps, self.device
         )
 
-      #  self.clamp_x0 = lambda x: x.clamp(-1, 1)
+        self.zero_mask = torch.tensor(zero_mask).permute(1,0).unsqueeze(0)
+
+        def clamp_x0(x):
+            x[self.zero_mask] = 0
+            return x
+
         self.get_x0_from_xt_eps = lambda xt, eps, t, scalars: (
-            #    self.clamp_x0(
+                clamp_x0(
                 1
                 / unsqueeze3x(scalars.alpha_bar[t].sqrt())
                 * (xt - unsqueeze3x((1 - scalars.alpha_bar[t]).sqrt()) * eps)
-         #   )
+            )
         )
         self.get_pred_mean_from_x0_xt = (
             lambda xt, x0, t, scalars: unsqueeze3x(
@@ -91,7 +96,7 @@ class GuassianDiffusion:
     def reverse_forward_process_simple(self, xt, t ,eps):
         """Simple backward stack of the forward process, where we remove noise in the image.
         """
-        return (xt -unsqueeze3x((1 - self.scalars.alpha_bar[t]).sqrt()) * eps) / unsqueeze3x(self.scalars.alpha_bar[t].sqrt())
+        return self.get_x0_from_xt_eps(xt,eps,t, self.scalars)#(xt -unsqueeze3x((1 - self.scalars.alpha_bar[t]).sqrt()) * eps) / unsqueeze3x(self.scalars.alpha_bar[t].sqrt())
 
     def sample_from_reverse_process(
         self, model, xT, timesteps = None, y = None, ddim=False,  guidance= "normal", w = 3.0
@@ -145,6 +150,7 @@ class GuassianDiffusion:
                 pred_mean = self.get_pred_mean_from_x0_xt(
                     final, pred_x0, current_sub_t, scalars
                 )
+              #  print(pred_mean)
                 if t == 0:
                     final = pred_mean
                 else:

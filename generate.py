@@ -14,7 +14,10 @@ def generate_sample(model,num_samples = num_of_samples, save = True, savefolder 
       sample = diffusion.sample_from_reverse_process(model,xt, timesteps=max_steps,y= label, guidance = "normal",ddim=False, w = 0.1)
       if save:
          for a in range(config["batch_size"]):
+            print(sample[a])
             torch.save((sample[a].cpu().detach(),  label[a].cpu().detach()), savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
+            sample1,label1 = torch.load(savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
+            print(sample1)
    return sample
 
 @torch.no_grad()
@@ -32,12 +35,13 @@ def generate_sample_combined(model1, model2, num_steps_combine = 75,num_samples 
       if save:
          for a in range(config["batch_size"]):
             torch.save((sample[a].cpu().detach(),  label[a].cpu().detach()), savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
+            
    return sample
 
 if __name__ == '__main__':
    #model1 = torch.load(save_path +"/model.pt").to(device).eval()
    model = torch.load("syn_data_PosSensitive/model.pt").to(device).eval()
-   generate_sample(model, num_samples = num_of_samples, save = True, savefolder= "PosSensitive")
+   generate_sample(model, num_samples = num_of_samples, save = True, savefolder= "syn_data_PosSensitive_new")
   # generate_sample_combined(model1, model2, num_samples = num_of_samples, save = True, savefolder= "combined")
 
  
