@@ -1,8 +1,8 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 4
-gradient_accumulation_steps = 4
+batch_size = 16
+gradient_accumulation_steps = 1
 epochs = 100
 epochs_vae = 4000
 epochs_classifier = 5
@@ -13,17 +13,18 @@ gene_size = 18432
 lr_classifier = 5e-5
 lr_pretrain = 1e-4
 lr_diffusion = 2e-4
-lr_vae = 6e-4
+lr_vae = 5e-5
 num_of_samples = 10405
 normalize_data = True
-kl_factor = 1e-2
+kl_factor = 1e-1
 gradient_clip = 1
 mask_ratio = 0.7
 gradient_clipping = 1.0
+test_set_size = 1000
 channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
 attention_resolutions = [32,64]#[32,128] #[32,64]
 base_width = 64
-model_name = "Transformer"#"UnetMLP"# "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,PosSensitive UnetMLP_working
+model_name = "UnetMLP"#"UnetMLP"# "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,PosSensitive UnetMLP_working
 save_path = "syn_data_"+model_name
 percent_unlabeled = 0#.95
 label_proportion_for_generation = 0.3067
@@ -51,5 +52,6 @@ config = {
     "base_width": base_width,
     "percent_unlabeled": percent_unlabeled,
     "label_proportion_for_generation": label_proportion_for_generation,
-    "gradient_clipping": gradient_clipping
+    "gradient_clipping": gradient_clipping,
+    "test_set_size": test_set_size
 }

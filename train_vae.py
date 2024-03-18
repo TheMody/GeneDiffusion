@@ -59,6 +59,8 @@ if __name__ == '__main__':
             genes, _ = next(train_iter)
             def closure(backward=False):
                 accloss = 0.0
+                accmseloss = 0.0
+                acckldloss = 0.0
                 for micro_step in range(gradient_accumulation_steps):
                     genes_small = genes[micro_step*batch_size:(micro_step+1)*batch_size].to(device)
                     genes_small  = genes_small.to(device).float().permute(0,2,1) #shape (batch_size, num_channels, gene_size)
@@ -69,15 +71,21 @@ if __name__ == '__main__':
                     loss = mseloss + kldloss
                     loss = loss/ gradient_accumulation_steps
                     accloss += loss
+                    accmseloss += mseloss/ gradient_accumulation_steps
+                    acckldloss += kldloss/ gradient_accumulation_steps
                     if backward:
                         loss.backward()
-                return accloss
+                return accloss ,mseloss, kldloss
             def closure_with_backward():
                 return closure(backward=True)
             
           #  loss = optimizer.step(closure = closure, closure_with_backward = closure_with_backward)
+            
+            loss,mseloss, kldloss = closure_with_backward()
+            if torch.abs(loss) > 1e6:
+                optimizer.zero_grad()
+                print("loss too high, skipping step")
             torch.nn.utils.clip_grad_norm_(model.parameters(), gradient_clip)
-            loss = closure_with_backward()
             optimizer.step()
             avgloss = avgloss  + loss.item()
             avglosssteps = avglosssteps + 1
@@ -86,7 +94,7 @@ if __name__ == '__main__':
                 print(f"epoch: {e}, step: {step}, loss: {avgloss/avglosssteps}")
                 avgloss = 0
                 avglosssteps = 0
-            log_dict = {"loss": loss.item()}#, "kldloss": kldloss, "mseloss": mseloss}
+            log_dict = {"loss": loss.item(), "kldloss": kldloss, "mseloss": mseloss}
 
             time_taken = time.time() - start
             ema_time = ema_time * 0.99 + time_taken * 0.01 #exponential moving average

@@ -65,6 +65,7 @@ def train_diffusion():
             for micro_step in range(gradient_accumulation_steps):
                 genes, labels = next(train_iter)
                 genes  = genes.to(device).float().permute(0,2,1)
+
                 #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
                 #mask out label with 10% probability

@@ -88,7 +88,7 @@ class SynGeneticDataset(Dataset):
 
 
 class GeneticDataset(Dataset):
-    def __init__(self, processed = True, normalize = normalize_data, label = None, percent_unlabeled = percent_unlabeled):
+    def __init__(self, processed = True, normalize = normalize_data, label = None, percent_unlabeled = percent_unlabeled, train = True):
         #super(GeneticDataset, self).__init__()
         self.x,self.y = load_data(processed = processed)
 
@@ -112,8 +112,39 @@ class GeneticDataset(Dataset):
         self.x = self.x[p]
         self.y = self.y[p]
 
-      #  self.x = self.x[:1000]
-     #   self.y = self.y[:1000]
+
+        #now we split the data into train and test but balance the test set by taking the same amount of each class
+        # we take 500 test samples of each class
+        num_test_samples = test_set_size//2
+
+        length_test_p = 0
+        length_test_n = 0
+        self.indices= []
+        for i,y in enumerate(self.y):
+            if y == 0:
+                if length_test_n >= num_test_samples:
+                    continue
+                self.indices.append(i)
+                length_test_n += 1
+            else:
+                if length_test_p >= num_test_samples:
+                    continue
+                self.indices.append(i)
+                length_test_p += 1
+            if length_test_n >= num_test_samples and length_test_p >= num_test_samples:
+                break
+
+        if not train:
+            self.x = self.x[self.indices]
+            self.y = self.y[self.indices]
+            print("len of test set", len(self.x))
+        else:
+            # train is the complement of test
+            self.x = np.delete(self.x, self.indices, axis = 0)
+            self.y = np.delete(self.y, self.indices, axis = 0)
+            print("len of train set", len(self.x))
+
+
         #print("mean label",np.mean(self.y)) #0.30677558865929844
         
 
@@ -132,12 +163,12 @@ class GeneticDataset(Dataset):
         return genome.float(), label
 
 def GeneticDataSets( processed = True, label = None, percent_unlabeled = percent_unlabeled):
-    dataset = GeneticDataset(processed, label = label, percent_unlabeled = percent_unlabeled)
-    train_size = int(0.8 * len(dataset))
-    test_size = len(dataset) - train_size
-    generator1 = torch.Generator().manual_seed(42)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size], generator = generator1)
-    return train_dataset,test_dataset
+    # dataset = GeneticDataset(processed, label = label, percent_unlabeled = percent_unlabeled)
+    # train_size = int(0.8 * len(dataset))
+    # test_size = len(dataset) - train_size
+    # generator1 = torch.Generator().manual_seed(42)
+    # train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size], generator = generator1)
+    return GeneticDataset(processed, label = label, percent_unlabeled = percent_unlabeled, train=True), GeneticDataset(processed, label = label, percent_unlabeled = percent_unlabeled, train = False)
 
 def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_unlabeled):
     train_dataset,test_dataset = GeneticDataSets(processed, percent_unlabeled = percent_unlabeled)

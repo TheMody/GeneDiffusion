@@ -83,19 +83,19 @@ class Decoder(nn.Module):
         return x
 
 class VariationalAutoencoder(nn.Module):
-    def __init__(self, data_dim, hidden_sizes = [16,24,24,32,32]):
+    def __init__(self, data_dim, hidden_sizes = [128,192,256,384,512,768]):
         super(VariationalAutoencoder, self).__init__()
-        self.encoder = Encoder( data_dim, hidden_sizes)
-        self.decoder = Decoder( data_dim, hidden_sizes)
+        self.encoder = Encoder( hidden_sizes[0], hidden_sizes)
+        self.decoder = Decoder(hidden_sizes[0], hidden_sizes)
         self.N = torch.distributions.Normal(0, 1)
         self.N.loc = self.N.loc.cuda() # hack to get sampling on the GPU
         self.N.scale = self.N.scale.cuda()
         self.kl = 0
-      #  self.input_layer = MultichannelLinear(gene_size, data_dim, data_dim)
-      #  self.output_layer = MultichannelLinear(gene_size, data_dim , data_dim)
+        self.input_layer = MultichannelLinear(gene_size, data_dim, hidden_sizes[0],16)
+        self.output_layer = MultichannelLinear(gene_size//16, hidden_sizes[0], data_dim,16, up = True)
 
     def forward(self, x, train = True):
-      #  x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
+        x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
         mu, logsigma = self.encoder(x)
         if train:    
             z = mu + torch.exp(logsigma)*self.N.sample(mu.shape)
@@ -103,5 +103,5 @@ class VariationalAutoencoder(nn.Module):
         else:
             z = mu
         x = self.decoder(z)
-      #  x = self.output_layer(x.permute(0,2,1)).permute(0,2,1)
+        x = self.output_layer(x.permute(0,2,1)).permute(0,2,1)
         return x
