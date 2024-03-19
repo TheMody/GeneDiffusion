@@ -15,6 +15,9 @@ from PIL import Image
 def data_abs_mean(x):
     return torch.mean(torch.abs(x))
 
+def mse_loss_masked(pred, target, mask):   
+    return torch.mean(((pred - target) ** 2) * torch.stack([mask for _ in range(pred.shape[0])]))
+
 def train_diffusion():
     wandb.init(project="diffusionGene", config = config)
     dataloader,valdataloader = GeneticDataloaders(config["batch_size"], True)
@@ -47,6 +50,8 @@ def train_diffusion():
     lrs = CosineWarmupScheduler(optimizer, warmup=100, max_iters=epochs*len(dataloader)//gradient_accumulation_steps)
 
 
+    if enforce_zeros:
+        not_zero_mask = (zero_mask==0).permute(1,0).to(device)
     if not os.path.isdir(save_path):
         os.mkdir(save_path)
     minloss = 1e10
@@ -75,12 +80,16 @@ def train_diffusion():
 
                # print(labels)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
+
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
               #  print(torch.max(eps))
               #  print(torch.min(eps))
                 pred_eps = model(xt, t, y = labels)
                # print(pred_eps.shape)
-                loss = critertion(pred_eps,eps)
+                if enforce_zeros:
+                    loss = mse_loss_masked(pred_eps,eps, not_zero_mask)
+                else:
+                    loss = critertion(pred_eps,eps)
                 
                 #print("abs_mean of reconstructed data",data_abs_mean(x_r))
                 x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
@@ -139,7 +148,11 @@ def train_diffusion():
                 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
-                loss = critertion(pred_eps,eps)
+
+                if enforce_zeros:
+                    loss = mse_loss_masked(pred_eps,eps, not_zero_mask)
+                else:
+                    loss = critertion(pred_eps,eps)
 
                 x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
                 

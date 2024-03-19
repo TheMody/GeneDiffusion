@@ -10,14 +10,11 @@ def generate_sample(model,num_samples = num_of_samples, save = True, savefolder 
       xt = torch.randn_like(torch.zeros(config["batch_size"],num_channels,gene_size)).to(device)
       label = (torch.rand(config["batch_size"]) <  label_proportion_for_generation).long().to(device)
       # label = torch.randint(num_classes, (config["batch_size"],), dtype=torch.int64).to(device)
-      print("at timestep:",i, "generating samples with label" ,label)
+      print("at step:",i, "generating samples with label" ,label)
       sample = diffusion.sample_from_reverse_process(model,xt, timesteps=max_steps,y= label, guidance = "normal",ddim=False, w = 0.1)
       if save:
          for a in range(config["batch_size"]):
-            print(sample[a])
             torch.save((sample[a].cpu().detach(),  label[a].cpu().detach()), savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
-            sample1,label1 = torch.load(savefolder +"/sample"+str(i*config["batch_size"] + a)+".pt")
-            print(sample1)
    return sample
 
 @torch.no_grad()
