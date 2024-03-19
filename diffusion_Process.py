@@ -24,7 +24,8 @@ class GuassianDiffusion:
         self.zero_mask = torch.tensor(zero_mask).permute(1,0)
 
         def clamp_x0(x):
-            x[torch.stack([self.zero_mask for _ in range(x.shape[0])])] = 0
+            if enforce_zeros:
+                x[torch.stack([self.zero_mask for _ in range(x.shape[0])])] = 0
             return x
 
         self.get_x0_from_xt_eps = lambda xt, eps, t, scalars: (
