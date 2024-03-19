@@ -1,7 +1,7 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 2
+batch_size = 16
 gradient_accumulation_steps = 1
 epochs = 100
 epochs_vae = 4000
@@ -20,7 +20,7 @@ kl_factor = 1e-1
 gradient_clip = 1
 mask_ratio = 0.7
 gradient_clipping = 1.0
-test_set_size = 1000
+test_set_size = 1040
 enforce_zeros = False
 zero_mask = torch.load("zero_mask.pt")
 channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)

@@ -95,7 +95,7 @@ def train_diffusion():
 
             optimizer.step()
 
-            if step % 1 == 0 and step != 0:
+            if step % 20 == 0 and step != 0:
                 print(f"epoch: {e}, step: {step}, loss: {avgloss/avglosssteps}")
                 avgloss = 0
                 avglosssteps = 0
