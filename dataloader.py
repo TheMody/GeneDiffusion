@@ -68,7 +68,7 @@ class SynGeneticDataset(Dataset):
     def __init__(self, path = save_path+"/", label = None):
         self.label = label
         self.path = path
-        self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt" and file != "vaemodel.pt" and file != "histogramm.png"]
+        self.all_file_paths = [self.path + file for file in os.listdir(self.path) if file != "model.pt" and file != "vaemodel.pt" and file[-3:] == ".pt"]
         print("path of dataset", self.path)
         print("len of syn dataset", len(self.all_file_paths))
         # for file in os.listdir(self.path):

@@ -11,6 +11,7 @@ from config import *
 import time
 from train_classifier import train_classifier
 from PIL import Image
+import matplotlib.pyplot as plt
 
 def data_abs_mean(x):
     return torch.mean(torch.abs(x))
@@ -163,7 +164,7 @@ def train_diffusion():
 
                 avgloss = avgloss  + loss.item()
                 avglosssteps = avglosssteps + 1
-            import matplotlib.pyplot as plt
+
             histogramm = histogramm.cpu().numpy()
             plt.bar(np.arange(len(histogramm[:, 0])), histogramm[:, 0], width = 1)
             plt.yscale("log")

@@ -30,7 +30,7 @@ def train_classifier(model = None):
     train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
    # genedata = GeneticDataset()
    # std = genedata.std.to(device)
-    train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
+    _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
     max_step = (num_of_samples-test_set_size)/(batch_size*gradient_accumulation_steps)*epochs_classifier
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
@@ -51,10 +51,6 @@ def train_classifier(model = None):
                     inputs = inputs.float().to(device)
 
                     labels = labels.to(device)
-                    # print("input",inputs.shape)
-                    # print(inputs[0])
-                    # print("labels",labels.shape)
-                    # print(labels[0])
                     outputs = model(inputs)
                     loss = loss_fn(outputs, labels)
                     loss = loss / gradient_accumulation_steps # scale the loss to account for gradient accumulation

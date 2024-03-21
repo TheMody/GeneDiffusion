@@ -681,11 +681,13 @@ class UNetModel(nn.Module):
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
      #   print("emb",emb.shape)
+        
         if self.num_classes is not None:
             assert y.shape == (x.shape[0],)
             emb = emb + self.label_emb(y)
      #   print("x", x.shape)
         h = x.type(self.dtype)
+        x_skip = h
       #  print("h", h.shape)
         for module in self.input_blocks:
             h = module(h, emb)
@@ -703,7 +705,7 @@ class UNetModel(nn.Module):
         h = h.type(x.dtype)
         if output_bottleneck:
             return self.out(h), bottleneck
-        return self.out(h)
+        return x_skip + self.out(h)
 
 
 def UNetBig(

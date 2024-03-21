@@ -16,7 +16,7 @@ def plot_histogramm(x):
 if __name__ == '__main__':
     train_dataloader,val_dataloader = GeneticDataloaders(config["batch_size"], True)
 
-    geneticData = SynGeneticDataset("syn_data_PosSensitive_new/")
+    geneticData = SynGeneticDataset("newbestdata/")
     syn_dataloader2 = DataLoader(geneticData, batch_size=config["batch_size"])
 
     geneticData = SynGeneticDataset("UnetMLP_supergood/")

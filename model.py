@@ -89,20 +89,20 @@ class Unet2D(nn.Module):
 
 
 class DownsamplinBlockMLP(nn.Module):
-    def __init__(self,input_size, output_size):
+    def __init__(self,input_size, output_size, hidden_factor = 4):
         super().__init__()
         self.lin1 = nn.Linear(input_size, output_size) 
-        self.lin2 = nn.Linear(output_size, output_size) 
-        self.lin3 = nn.Linear(output_size, output_size) 
+        self.lin2 = nn.Linear(output_size, output_size*hidden_factor) 
+        self.lin3 = nn.Linear(output_size*hidden_factor, output_size) 
         self.norm = nn.GroupNorm(32,output_size)
     
     def forward(self,x):
 
         x = F.silu(self.lin1(x))
-        skip = x
-        x_skip = F.silu(self.lin2(x))
+        x_skip = x
         x = self.norm(x)
-        x = skip + F.silu(self.lin3(x))
+        x = F.silu(self.lin2(x))
+        x = x_skip + F.silu(self.lin3(x))
         return x, x_skip
 
 class UpsamplingBlockMLP(nn.Module):
