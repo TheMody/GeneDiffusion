@@ -492,6 +492,8 @@ class UNetModel(nn.Module):
         use_scale_shift_norm=False,
         resblock_updown=False,
         use_new_attention_order=False,
+        pos_sensitive = False,
+        sequence_length = gene_size
     ):
         super().__init__()
 
@@ -658,12 +660,22 @@ class UNetModel(nn.Module):
                     ds //= 2
                 self.output_blocks.append(TimestepEmbedSequential(*layers))
                 self._feature_size += ch
-
-        self.out = nn.Sequential(
-            normalization(ch),
-            nn.SiLU(),
-            zero_module(conv_nd(dims, input_ch, out_channels, 3, padding=1)),
-        )
+        
+        self.pos_sensitive = pos_sensitive
+        if pos_sensitive:
+            self.input_layer = MultichannelLinear(sequence_length, in_channels, base_width)
+            self.output_layer = MultichannelLinear(sequence_length, base_width , out_channels)
+            self.out = nn.Sequential(
+                normalization(ch),
+                nn.SiLU(),
+                zero_module(conv_nd(dims, input_ch, base_width, 3, padding=1)),
+            )
+        else:
+            self.out = nn.Sequential(
+                normalization(ch),
+                nn.SiLU(),
+                zero_module(conv_nd(dims, input_ch, out_channels, 3, padding=1)),
+            )
 
     def forward(self, x, timesteps, y=None, output_bottleneck = False):
         """
@@ -688,6 +700,8 @@ class UNetModel(nn.Module):
      #   print("x", x.shape)
         h = x.type(self.dtype)
         x_skip = h
+        if self.pos_sensitive:
+            x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
       #  print("h", h.shape)
         for module in self.input_blocks:
             h = module(h, emb)
@@ -705,7 +719,10 @@ class UNetModel(nn.Module):
         h = h.type(x.dtype)
         if output_bottleneck:
             return self.out(h), bottleneck
-        return x_skip + self.out(h)
+        h = self.out(h)
+        if self.pos_sensitive:
+            h = self.output_layer(h.permute(0,2,1)).permute(0,2,1)
+        return x_skip + h
 
 
 def UNetBig(
@@ -771,9 +788,9 @@ class PosSensitiveUnet(nn.Module):
         #     attention_ds.append(int(res))
 
         self.Unet = UNetModel(
-            in_channels=base_width,
+            in_channels=in_channels,
             model_channels=base_width,
-            out_channels=base_width,
+            out_channels=out_channels,
             num_res_blocks=3,
             attention_resolutions=tuple(attention_res),
             dropout=0.1,
@@ -788,15 +805,16 @@ class PosSensitiveUnet(nn.Module):
             use_scale_shift_norm=True,
             resblock_updown=True,
             use_new_attention_order=True,
+            pos_sensitive= True
             )
-        self.input_layer = MultichannelLinear(sequence_length, in_channels, base_width)
-        self.output_layer = MultichannelLinear(sequence_length, base_width , out_channels)
+       # self.input_layer = MultichannelLinear(sequence_length, in_channels, base_width)
+       # self.output_layer = MultichannelLinear(sequence_length, base_width , out_channels)
 
     def forward(self,x, timesteps, y=None):
       #  print(x.shape)
-        x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
+      #  x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
         x = self.Unet(x, timesteps,y)
-        x = self.output_layer(x.permute(0,2,1)).permute(0,2,1)
+       # x = self.output_layer(x.permute(0,2,1)).permute(0,2,1)
         return x
 
 class PosSensitiveUnetDeep(nn.Module):
