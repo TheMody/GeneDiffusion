@@ -101,8 +101,8 @@ class DownsamplinBlockMLP(nn.Module):
         x = F.silu(self.lin1(x))
         skip = x
         x = F.silu(self.lin2(x))
-        x = self.norm(x)
         x_skip = x
+        x = self.norm(x)
         x = skip + F.silu(self.lin3(x))
         return x, x_skip
 
