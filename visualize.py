@@ -16,7 +16,7 @@ def plot_histogramm(x):
 if __name__ == '__main__':
     train_dataloader,val_dataloader = GeneticDataloaders(config["batch_size"], True)
 
-    geneticData = SynGeneticDataset("newbestdata/")
+    geneticData = SynGeneticDataset("syn_data_PosSensitive/")
     syn_dataloader2 = DataLoader(geneticData, batch_size=config["batch_size"])
 
     geneticData = SynGeneticDataset("UnetMLP_supergood/")
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # combined_data = pca.fit_transform(combined_data)
 
     print("computing UMAP")
-    reducer = umap.UMAP(metric = 'cosine')
+    reducer = umap.UMAP(metric = 'cosine', n_neighbors=5)
     embedding = reducer.fit_transform(combined_data)
     plt.scatter(embedding[:, 0], embedding[:, 1], c=combined_labels, cmap=plt.get_cmap('brg'))
 

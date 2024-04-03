@@ -249,6 +249,7 @@ class EncoderModelDiffusion(nn.Module):
 
     def forward(self, x, t,y,last_hidden = True, embedding = False):
         x = x.permute(0,2,1)
+        x_skip = x
         x = self.EmbeddingLayer(x)
         classification_token = torch.stack([self.classification_token.unsqueeze(0) for _ in range(x.shape[0])])
         
@@ -265,8 +266,8 @@ class EncoderModelDiffusion(nn.Module):
             return x
         if last_hidden:
             x = self.DeEmbeddingLayer(x[:,3:,:])
-            x = x.permute(0,2,1)
-            return x
+           # x = x.permute(0,2,1)
+            return (x_skip + x).permute(0,2,1)
         return self.dense(classification_token)
 
 class EncoderModelPreTrain(nn.Module):

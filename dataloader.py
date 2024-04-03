@@ -87,63 +87,133 @@ class SynGeneticDataset(Dataset):
     #    print(genome)
         return genome.permute(1,0), label
 
+def generate_train_test_split(processed = True, normalize = normalize_data):
+    x,y = load_data(processed = processed)
+
+    print("len of dataset", len(x))
+    
+    processed = processed
+    if normalize:
+        xstd = np.std(x, axis = 0)
+        xstd[xstd == 0.0] +=1
+        x-np.mean(x,axis=0)
+        x = x / xstd 
+    
+
+    # if percent_unlabeled != 0:
+    #     y[:int(len(self.y)*percent_unlabeled)] = 2
+
+    #now we shuffle x and y
+    np.random.seed(42)
+    p = np.random.permutation(len(x))
+    x = x[p]
+    y = y[p]
+
+
+    #now we split the data into train and test but balance the test set by taking the same amount of each class
+    # we take 500 test samples of each class
+    num_test_samples = test_set_size//2
+
+    length_test_p = 0
+    length_test_n = 0
+    indices= []
+    for i,c in enumerate(y):
+        if c == 0:
+            if length_test_n >= num_test_samples:
+                continue
+            indices.append(i)
+            length_test_n += 1
+        else:
+            if length_test_p >= num_test_samples:
+                continue
+            indices.append(i)
+            length_test_p += 1
+        if length_test_n >= num_test_samples and length_test_p >= num_test_samples:
+            break
+
+
+    x_test = x[indices]
+    y_test = y[indices]
+    print("len of test set", len(x_test))
+
+    # train is the complement of test
+    x_train = np.delete(x, indices, axis = 0)
+    y_train = np.delete(y, indices, axis = 0)
+    print("len of train set", len(x_train))
+
+    fileObject = open("data/ds_test", 'wb')
+    pickle.dump((x_test,y_test),fileObject )
+    fileObject.close()
+
+    fileObject = open("data/ds_train", 'wb')
+    pickle.dump((x_train,y_train),fileObject )
+    fileObject.close()
+
 
 class GeneticDataset(Dataset):
     def __init__(self, processed = True, normalize = normalize_data, label = None, percent_unlabeled = percent_unlabeled, train = True):
-        #super(GeneticDataset, self).__init__()
-        self.x,self.y = load_data(processed = processed)
+        if not os.path.exists('data/ds_train'):
+            generate_train_test_split(processed = processed, normalize = normalize)
+        if train:
+            self.x,self.y=pickle.load(open('data/ds_train','rb'))
+        else:
+            self.x,self.y=pickle.load(open('data/ds_test','rb'))
 
         print("len of dataset", len(self.x))
+        #super(GeneticDataset, self).__init__()
+        # self.x,self.y = load_data(processed = processed)
+
+        # print("len of dataset", len(self.x))
         
-        self.processed = processed
-        self.label = label
-        if normalize:
-            xstd = np.std(self.x, axis = 0)
-            xstd[xstd == 0.0] +=1
-            self.x-np.mean(self.x,axis=0)
-            self.x = self.x / xstd 
+        # self.processed = processed
+        # self.label = label
+        # if normalize:
+        #     xstd = np.std(self.x, axis = 0)
+        #     xstd[xstd == 0.0] +=1
+        #     self.x-np.mean(self.x,axis=0)
+        #     self.x = self.x / xstd 
         
 
-        if percent_unlabeled != 0:
-            self.y[:int(len(self.y)*percent_unlabeled)] = 2
+        # if percent_unlabeled != 0:
+        #     self.y[:int(len(self.y)*percent_unlabeled)] = 2
 
-        #now we shuffle x and y
-        np.random.seed(42)
-        p = np.random.permutation(len(self.x))
-        self.x = self.x[p]
-        self.y = self.y[p]
+        # #now we shuffle x and y
+        # np.random.seed(42)
+        # p = np.random.permutation(len(self.x))
+        # self.x = self.x[p]
+        # self.y = self.y[p]
 
 
-        #now we split the data into train and test but balance the test set by taking the same amount of each class
-        # we take 500 test samples of each class
-        num_test_samples = test_set_size//2
+        # #now we split the data into train and test but balance the test set by taking the same amount of each class
+        # # we take 500 test samples of each class
+        # num_test_samples = test_set_size//2
 
-        length_test_p = 0
-        length_test_n = 0
-        self.indices= []
-        for i,y in enumerate(self.y):
-            if y == 0:
-                if length_test_n >= num_test_samples:
-                    continue
-                self.indices.append(i)
-                length_test_n += 1
-            else:
-                if length_test_p >= num_test_samples:
-                    continue
-                self.indices.append(i)
-                length_test_p += 1
-            if length_test_n >= num_test_samples and length_test_p >= num_test_samples:
-                break
+        # length_test_p = 0
+        # length_test_n = 0
+        # self.indices= []
+        # for i,y in enumerate(self.y):
+        #     if y == 0:
+        #         if length_test_n >= num_test_samples:
+        #             continue
+        #         self.indices.append(i)
+        #         length_test_n += 1
+        #     else:
+        #         if length_test_p >= num_test_samples:
+        #             continue
+        #         self.indices.append(i)
+        #         length_test_p += 1
+        #     if length_test_n >= num_test_samples and length_test_p >= num_test_samples:
+        #         break
 
-        if not train:
-            self.x = self.x[self.indices]
-            self.y = self.y[self.indices]
-            print("len of test set", len(self.x))
-        else:
-            # train is the complement of test
-            self.x = np.delete(self.x, self.indices, axis = 0)
-            self.y = np.delete(self.y, self.indices, axis = 0)
-            print("len of train set", len(self.x))
+        # if not train:
+        #     self.x = self.x[self.indices]
+        #     self.y = self.y[self.indices]
+        #     print("len of test set", len(self.x))
+        # else:
+        #     # train is the complement of test
+        #     self.x = np.delete(self.x, self.indices, axis = 0)
+        #     self.y = np.delete(self.y, self.indices, axis = 0)
+        #     print("len of train set", len(self.x))
 
 
 
@@ -156,12 +226,12 @@ class GeneticDataset(Dataset):
     def __getitem__(self, idx):
         genome = self.x[idx]
       #  genome = genome[None,...]
-        if self.processed:
-            genome = F.pad(torch.tensor(genome), (0,0,0, 18432 - genome.shape[0]), "constant", 0)
+       # if self.processed:
+        genome = F.pad(torch.tensor(genome), (0,0,0, 18432 - genome.shape[0]), "constant", 0)
      #   print(genome.shape)
         label = torch.tensor(self.y[idx])
-        if self.label is not None:
-            label = torch.tensor(self.label)
+      #  if self.label is not None:
+        #label = torch.tensor(self.label)
 
         # zero_mask = genome == 0
         # torch.save(zero_mask, "zero_mask.pt")
@@ -174,6 +244,7 @@ def GeneticDataSets( processed = True, label = None, percent_unlabeled = percent
     # test_size = len(dataset) - train_size
     # generator1 = torch.Generator().manual_seed(42)
     # train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size], generator = generator1)
+    # return train_dataset, test_dataset
     return GeneticDataset(processed, label = label, percent_unlabeled = percent_unlabeled, train=True), GeneticDataset(processed, label = label, percent_unlabeled = percent_unlabeled, train = False)
 
 def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_unlabeled):
@@ -185,6 +256,7 @@ def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_
     return train_dataloader,test_dataloader
 
 
-
+# if __name__ == "__main__":
+#     generate_train_test_split()
 
 #processes_data()
