@@ -64,7 +64,8 @@ if __name__ == '__main__':
     print("computing UMAP")
     reducer = umap.UMAP(metric = 'cosine', n_neighbors=5)
     embedding = reducer.fit_transform(combined_data)
-    plt.scatter(embedding[:, 0], embedding[:, 1], c=combined_labels, cmap=plt.get_cmap('brg'))
+    #reduce the size of the scatter points
+    plt.scatter(embedding[:, 0], embedding[:, 1], c=combined_labels, cmap=plt.get_cmap('brg'), s = 3)
 
    # Create a color bar
     cbar = plt.colorbar()

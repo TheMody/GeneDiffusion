@@ -29,14 +29,14 @@ def draw_samples(dataloader,num_samples):
         return data
 
 def check_diversity_by_closest():
-    geneticDataSyn = SynGeneticDataset("newbestdata/")
+    geneticDataSyn = SynGeneticDataset("syn_data_Unet/")
     geneticData = GeneticDataset()
 
 
     geneticDataSyn = draw_samples(geneticDataSyn, num_checks)
     geneticData = draw_samples(geneticData, num_checks)
 
-    def find_closest(dataset, num = 10):
+    def find_closest(dataset, num = 100):
         all_min_dist = []
         for i,datapoint in enumerate(dataset):
             if i > num:
@@ -53,7 +53,7 @@ def check_diversity_by_closest():
         print(np.mean(all_min_dist))
 
     find_closest(geneticDataSyn)
-    #find_closest(geneticData)
+    find_closest(geneticData)
             
 if __name__ == "__main__":
     check_diversity_by_closest()

@@ -192,6 +192,29 @@ class UnetMLP(nn.Module):
         if output_bottleneck:
             return x, bottleneck
         return x
+    
+class BaselineNet(nn.Module):
+    def __init__(self,input_channel = 3, output_channel = 3, hidden_dim = 1024, c_emb_dim = 10):
+        super().__init__()
+        self.linear1 = nn.Linear(input_channel, hidden_dim)
+        self.linear2 = nn.Linear(hidden_dim,hidden_dim)
+        self.linear3 = nn.Linear(hidden_dim,output_channel)
+        self.time_embedding = nn.Linear(1, hidden_dim)
+        self.class_embedding = nn.Embedding(c_emb_dim, hidden_dim)
+
+    def forward(self,x,t,y=None):
+        shape = x.shape
+        x = x.flatten(1)
+        x_skip = x
+        x = F.silu(self.linear1(x))
+        c_emb = self.class_embedding(y)
+        emb = self.time_embedding(t.unsqueeze(-1).float()/max_steps)
+        x = x * c_emb + emb
+        x = F.silu(self.linear2(x))
+        x = self.linear3(x)
+        x = x + x_skip
+        x = x.reshape(shape)
+        return x
 
 
 class UnetMLPandCNN(nn.Module):

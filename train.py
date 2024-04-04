@@ -2,7 +2,7 @@
 import torch
 from diffusion_Process import GuassianDiffusion
 from unets import UNet, UNet1d, PosSensitiveUnet, PosSensitiveUnetDeep
-from model import  Unet2D, UnetMLP, UnetMLPandCNN, EncoderModelDiffusion
+from model import  Unet2D, UnetMLP, UnetMLPandCNN, EncoderModelDiffusion, BaselineNet
 from dataloader import *
 import wandb
 from utils import *
@@ -26,6 +26,8 @@ def train_diffusion():
     diffusion = GuassianDiffusion(max_steps)
   #  model = Unet2D(3,3, hidden_dim=[64,128,256,512], c_emb_dim=num_classes).to(device)
   #  model = torch.load("modellarge.pt")
+    if model_name == "Baseline":
+        model = BaselineNet(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
     if model_name == "UnetMLP":
         model = UnetMLP(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
     if model_name == "Transformer":
