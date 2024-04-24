@@ -30,6 +30,8 @@ def train_diffusion():
         model = BaselineNet(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
     if model_name == "UnetMLP":
         model = UnetMLP(num_channels*gene_size,num_channels*gene_size, c_emb_dim=num_classes+1).to(device)
+    if model_name == "UnetMLPlarge":
+        model = UnetMLP(num_channels*gene_size,num_channels*gene_size,hidden_dim=[2048,1024,512,256], c_emb_dim=num_classes+1).to(device)
     if model_name == "Transformer":
         model = EncoderModelDiffusion().to(device)
     if model_name == "UnetCombined":

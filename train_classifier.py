@@ -12,7 +12,7 @@ import time
 
 
 def train_classifier(model = "mlp", data = "syn"):
-    print("Training Classifier using ", model)
+    print("Training Classifier using ", model, "on " , data)
     #basic building blocks
     if model == "mlp":
       model = MLPModel(num_input=num_channels*gene_size)#75584)#
@@ -113,4 +113,4 @@ def train_classifier(model = "mlp", data = "syn"):
 
 
 if __name__ == "__main__":
-    train_classifier("cnn", "real")
+    train_classifier()
