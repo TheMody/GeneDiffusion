@@ -11,26 +11,29 @@ import time
 
 
 
-def train_classifier(model = None):
+def train_classifier(model = "mlp", data = "syn"):
+    print("Training Classifier using ", model)
     #basic building blocks
-    model = MLPModel(num_input=num_channels*gene_size)#75584)#
-  #  model = ConvclsModel(input_dim=num_channels)
-    #model = EncoderModel()
-  #  if model is None:
-     #   model = EncoderModelPreTrain()
-    #model = torch.load("pretrained_models/model.pt")
+    if model == "mlp":
+      model = MLPModel(num_input=num_channels*gene_size)#75584)#
+    elif model == "cnn":
+        model = ConvclsModel(input_dim=num_channels)
+    elif model == "transformer":
+        model = EncoderModel()
+        
     model = model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-    geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")path = "UnetMLP_supergood/"
-  #  geneticDatatrain,_ = GeneticDataSets()
-   # train_dataloader = DataLoader(torch.utils.data.ConcatDataset([geneticDatatrain, geneticDataSyn]), batch_size=config["batch_size"], shuffle=True)
-    train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
-   # genedata = GeneticDataset()
-   # std = genedata.std.to(device)
-    _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
+    geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")path = "UnetMLP_supergood/"path = "syn_data_Transformer/"path = "syn_data_Transformer/"
+
+    if data == "syn":
+      train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
+      _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
+    else:
+       train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0) 
+    
     max_step = (num_of_samples-test_set_size)/(batch_size*gradient_accumulation_steps)*epochs_classifier
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
 
@@ -75,7 +78,7 @@ def train_classifier(model = None):
                     log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0], "time_per_step": time.time()-start}
                     wandb.log(log_dict)
                     running_loss = 0.
-                    if i % 20 == 0:
+                    if i % 100 == 0:
                         print('  batch {} loss: {} accuracy: {}'.format(i + 1, avg_loss, acc))
                         
 
@@ -110,4 +113,4 @@ def train_classifier(model = None):
 
 
 if __name__ == "__main__":
-    train_classifier()
+    train_classifier("cnn", "real")

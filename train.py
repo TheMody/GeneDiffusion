@@ -159,7 +159,7 @@ def train_diffusion():
 
                 x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
                 
-                histogramm[t, 0] = (histogramm[t, 0]  * histogramm[t, 1] + torch.sum(torch.abs(x_r-genes), dim = (1,2))) / (histogramm[t, 1]  +1)
+                histogramm[t, 0] = (histogramm[t, 0]  * histogramm[t, 1] + torch.mean(torch.abs(x_r-genes), dim = (1,2))) / (histogramm[t, 1]  +1)
                 histogramm[t, 1] += 1
                 
                 acc_rec_error += data_abs_mean(x_r-genes).item()
@@ -168,9 +168,10 @@ def train_diffusion():
                 avglosssteps = avglosssteps + 1
 
             histogramm = histogramm.cpu().numpy()
-            plt.bar(np.arange(len(histogramm[:, 0])), histogramm[:, 0], width = 1)
+            plt.bar(np.arange(len(histogramm[:, 0]))/len(histogramm[:, 0]), histogramm[:, 0], width = 1/len(histogramm[:, 0]))
             plt.yscale("log")
-            plt.xlabel("noise scaling t")
+            plt.ylim (1e-2, 5e1)
+            plt.xlabel("noise ratio")
             plt.ylabel("reconstruction error")
             plt.savefig(save_path+"/"+"histogramm.png")
             img = Image.open(save_path+"/"+"histogramm.png")
@@ -190,5 +191,7 @@ if __name__ == '__main__':
     model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()
     generate_sample(model, num_of_samples, savefolder=save_path)
-    train_classifier()
+    train_classifier("mlp")
+    train_classifier("cnn")
+    train_classifier("transformer")
 
