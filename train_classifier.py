@@ -11,7 +11,7 @@ import time
 
 
 
-def train_classifier(model = "mlp", data = "syn"):
+def train_classifier(model = "mlp", data = "syn", path = None):
     print("Training Classifier using ", model, "on " , data)
     #basic building blocks
     if model == "mlp":
@@ -26,9 +26,9 @@ def train_classifier(model = "mlp", data = "syn"):
     loss_fn = torch.nn.CrossEntropyLoss()
     wandb.init(project="diffusionGene", config=config)
     #data
-    geneticDataSyn = SynGeneticDataset()#path = "syndaUnetconv/")path = "UnetMLP_supergood/"path = "syn_data_Transformer/"path = "syn_data_Transformer/"
-
+    
     if data == "syn":
+      geneticDataSyn = SynGeneticDataset(path = path)#path = "syndaUnetconv/")path = "UnetMLP_supergood/"path = "syn_data_Transformer/"path = "syn_data_Transformer/"
       train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
       _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
     else:
@@ -113,4 +113,4 @@ def train_classifier(model = "mlp", data = "syn"):
 
 
 if __name__ == "__main__":
-    train_classifier()
+    train_classifier("transformer", "syn", "finalruns/UnetMLP/")

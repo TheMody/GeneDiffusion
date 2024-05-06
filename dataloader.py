@@ -153,6 +153,7 @@ def generate_train_test_split(processed = True, normalize = normalize_data):
 class GeneticDataset(Dataset):
     def __init__(self, processed = True, normalize = normalize_data, label = None, percent_unlabeled = percent_unlabeled, train = True):
         if not os.path.exists('data/ds_train'):
+            print("generating new train/test split")
             generate_train_test_split(processed = processed, normalize = normalize)
         if train:
             self.x,self.y=pickle.load(open('data/ds_train','rb'))

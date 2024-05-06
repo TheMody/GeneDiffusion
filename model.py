@@ -469,14 +469,14 @@ class ConvclsModel(nn.Module):
     def __init__(self, num_classes=2, input_dim = 8, num_layers = 3):
         super().__init__()
         hidden_dim = 64
-        self.multilin = MultichannelLinear(18432, input_dim, 32)
-        self.conv1 = nn.Conv1d(32, hidden_dim, 3, stride = 2)
+     #   self.multilin = MultichannelLinear(18432, input_dim, 32)
+        self.conv1 = nn.Conv1d(input_dim, hidden_dim, 3, stride = 2)
         self.convs = nn.ModuleList([nn.Conv1d(hidden_dim, hidden_dim, 3, stride = 2) for i in range(num_layers)])
         
         self.dense3 = nn.Linear(73664, num_classes)
 
     def forward(self, x):
-        x = F.gelu(self.multilin(x))
+       # x = F.gelu(self.multilin(x))
         x = x.permute(0,2,1)
         x = F.gelu(self.conv1(x))
         for conv in self.convs:
@@ -484,4 +484,4 @@ class ConvclsModel(nn.Module):
         x = x.flatten(1)
        # print(x.shape)
         #x = torch.mean(x, dim = 2)
-        return F.softmax(self.dense3(x), dim=1)
+        return self.dense3(x)
