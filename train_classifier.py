@@ -113,4 +113,4 @@ def train_classifier(model = "mlp", data = "syn", path = None):
 
 
 if __name__ == "__main__":
-    train_classifier("transformer", "syn", "finalruns/UnetMLP/")
+    train_classifier("mlp", "syn", "newgeneration/")

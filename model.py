@@ -223,7 +223,7 @@ class UnetMLPandCNN(nn.Module):
         from unets import UNet1d
         self.MLP = UnetMLP(channels_MLP, channels_MLP,c_emb_dim = num_classes)
         self.CNN = UNet1d(channels_CNN, channels_CNN, base_width = base_width, num_classes= num_classes)
-        self.learnable_weight_time = nn.Linear(1,1)
+        self.learnable_weight_time = nn.Sequential(nn.Linear(1,128), nn.SiLU(), nn.Linear(128,1))
         self.weighing_factor = 0
 
     def forward(self,x,t,y=None):

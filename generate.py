@@ -37,8 +37,8 @@ def generate_sample_combined(model1, model2, num_steps_combine = 75,num_samples 
 
 if __name__ == '__main__':
    #model1 = torch.load(save_path +"/model.pt").to(device).eval()
-   model = torch.load("syn_data_PosSensitive/model.pt").to(device).eval()
-   generate_sample(model, num_samples = num_of_samples, save = True, savefolder= "syn_data_PosSensitive_new")
+   model = torch.load("finalruns/Unet/model.pt").to(device).eval()
+   generate_sample(model, num_samples = num_of_samples, save = True, savefolder= "newgeneration")
   # generate_sample_combined(model1, model2, num_samples = num_of_samples, save = True, savefolder= "combined")
 
  
