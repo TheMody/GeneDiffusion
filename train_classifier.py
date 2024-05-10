@@ -11,7 +11,7 @@ import time
 
 
 
-def train_classifier(model = "mlp", data = "syn", path = None):
+def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     print("Training Classifier using ", model, "on " , data)
     #basic building blocks
     if model == "mlp":
@@ -28,10 +28,7 @@ def train_classifier(model = "mlp", data = "syn", path = None):
     #data
     
     if data == "syn":
-      if path == None:
-        geneticDataSyn = SynGeneticDataset()
-      else:
-        geneticDataSyn = SynGeneticDataset(path = path)#path = "syndaUnetconv/")path = "UnetMLP_supergood/"path = "syn_data_Transformer/"path = "syn_data_Transformer/"
+      geneticDataSyn = SynGeneticDataset(path = path)#path = "syndaUnetconv/")path = "UnetMLP_supergood/"path = "syn_data_Transformer/"path = "syn_data_Transformer/"
       train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
       _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
     else:
