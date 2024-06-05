@@ -1,7 +1,7 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 2
+batch_size = 16
 gradient_accumulation_steps = 1
 epochs = 100
 epochs_vae = 4000
@@ -13,7 +13,7 @@ gene_size = 18432
 lr_classifier = 5e-5
 lr_pretrain = 1e-4
 lr_diffusion = 2e-4
-lr_vae = 5e-5
+lr_vae = 1e-4
 num_of_samples = 10405
 normalize_data = True
 kl_factor = 1e-1
@@ -22,7 +22,7 @@ mask_ratio = 0.7
 gradient_clipping = 1.0
 test_set_size = 1040
 enforce_zeros = True
-zero_mask = torch.load("zero_mask.pt")
+zero_mask = torch.load("data/zero_mask.pt")
 channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
 attention_resolutions = [32,64]#[32,128] #[32,64]
 base_width = 64

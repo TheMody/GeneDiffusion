@@ -105,3 +105,57 @@ class VariationalAutoencoder(nn.Module):
         x = self.decoder(z)
         x = self.output_layer(x.permute(0,2,1)).permute(0,2,1)
         return x
+    
+class Block(nn.Module):
+    def __init__(self, input_dims, output_dims):
+        super(Block, self).__init__()
+        self.projection = nn.Linear(input_dims, output_dims)
+        self.norm = nn.GroupNorm(8,output_dims)
+        self.conv1 = nn.Linear(output_dims, output_dims)
+        self.conv2 = nn.Linear(output_dims, output_dims)
+
+
+    def forward(self,x):
+        x = F.silu(self.projection(x))
+        skipx = x
+        x = self.norm(x)
+        x = F.silu(self.conv1(x))
+        x = F.silu(self.conv2(x))
+        x = x + skipx
+        return x 
+        
+    
+class Encoder(nn.Module):
+    def __init__(self,  hidden_sizes ):
+        super().__init__()
+        self.blocks = nn.ModuleList([Block(hidden_sizes[i], hidden_sizes[i+1]) for i in range(len(hidden_sizes)-1)])
+    def forward(self, x):
+        for layer in self.blocks:
+            x = layer(x)
+        return x
+    
+class Decoder(nn.Module):
+    def __init__(self,  hidden_sizes ):
+        super().__init__()
+        self.layers = nn.ModuleList([Block(hidden_sizes[i], hidden_sizes[i+1]) for i in range(len(hidden_sizes)-1)])
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer(x)
+        return x
+
+class Autoencoder(nn.Module):
+    def __init__(self, input_size = gene_size*num_channels, hidden_sizes = [2048,1024]):
+        super().__init__()
+        self.encoder = Encoder([input_size]+hidden_sizes)
+        self.decoder = Decoder(list(reversed(hidden_sizes)))
+        self.out = nn.Linear(hidden_sizes[0], input_size)
+
+    def forward(self, x):
+        xshape = x.shape
+        x = x.flatten(1)
+        x = self.encoder(x)
+        x = self.decoder(x)
+        x = self.out(x)
+        x = x.reshape(xshape)
+        return x
+        

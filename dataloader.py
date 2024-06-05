@@ -57,7 +57,7 @@ def processes_data():
 
     tokenized_ds = np.asarray(tokenized_ds)
     print(tokenized_ds.shape)
-    fileObject = open("data/processed_ds", 'wb')
+    fileObject = open("data/processed_ds_new", 'wb')
     pickle.dump(tokenized_ds,fileObject )
     fileObject.close()
     # for column in dataset_X:
@@ -86,6 +86,95 @@ class SynGeneticDataset(Dataset):
         #label = F.one_hot(label.squeeze(),2)
     #    print(genome)
         return genome.permute(1,0), label
+    
+def save_datameanstd():
+    x,y = load_data(processed = True)
+
+    print("len of dataset", len(x))
+    
+    xstd = np.std(x, axis = 0)
+    xstd[xstd == 0.0] +=1
+    xmean = np.mean(x,axis=0)
+    x-xmean
+    x = x / xstd 
+    fileObject = open("data/normlization.pkl", 'wb')
+    pickle.dump((xmean,xstd),fileObject )
+    fileObject.close()
+
+def transform_data_back(x, save= "ds/backtransformed_ds"):
+
+    #now undo one kind of padding
+    x = x[:,:18279,:]
+
+    #first undo normlization
+    fileObject = open("data/normlization.pkl", 'rb')
+    xmean,xstd = pickle.load(fileObject)
+    fileObject.close()
+    x = x * xstd + xmean
+
+
+
+
+    #now transform back to weird gene snps format
+    x = x.reshape(x.shape[0], x.shape[1]*x.shape[2])
+
+
+    ds,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
+
+    names = list(ds.columns.values)
+    
+    #undo all the padding
+    # zero_mask2 = zero_mask[:18279,:].flatten()
+    # x = x[:,zero_mask2==0]
+    for i in range(len(names)):
+        split  = names[i].split(":")
+        names[i] = split[0]+":"+split[1]
+   # print(names)
+
+    n_unique, countunique = np.unique(names, return_counts=True)
+   # print(len(n_unique))
+   # print(countunique)
+    max_length = np.max(countunique)
+   # print(max_length)
+    tokenized_ds = []
+    for i in tqdm(range(1)):
+        datapoint = np.asanyarray(ds.iloc[i,:].values)
+       # print(datapoint)
+      #  print(datapoint.shape)
+        tokens = []
+        last_name = names[0]
+        token = np.zeros(max_length)
+        pos_int_token = 0
+        for a,value in enumerate(datapoint):
+            if not last_name == names[a]:
+                tokens.append(token)
+                last_name = names[a]
+                pos_int_token = 0
+                token = np.zeros(max_length)
+            token[pos_int_token] = 1
+            pos_int_token += 1
+        tokens.append(token)
+       # print(len(tokens))
+        datapoint = np.asarray(tokens)
+      #  print(datapoint.shape)
+        #print(datapoint.shape)
+        tokenized_ds.append(datapoint)
+
+    tokenized_ds = np.asarray(tokenized_ds)
+    print(tokenized_ds.shape)
+
+    tokenized_ds = tokenized_ds[0].flatten()
+    x = x[:,tokenized_ds==1]
+
+    # now it should be the same lenght as the original dataset
+    print(len(names), x.shape[1])
+
+    #save the dataset
+    fileObject = open(save, 'wb')
+    pickle.dump(x,fileObject )
+    fileObject.close()
+
+    return x
 
 def generate_train_test_split(processed = True, normalize = normalize_data):
     x,y = load_data(processed = processed)
@@ -96,8 +185,13 @@ def generate_train_test_split(processed = True, normalize = normalize_data):
     if normalize:
         xstd = np.std(x, axis = 0)
         xstd[xstd == 0.0] +=1
-        x-np.mean(x,axis=0)
+        xmean = np.mean(x,axis=0)
+        x-xmean
         x = x / xstd 
+        fileObject = open("data/normlization.pkl", 'wb')
+        pickle.dump((xmean,xstd),fileObject )
+        fileObject.close()
+
     
 
     # if percent_unlabeled != 0:
@@ -257,7 +351,17 @@ def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_
     return train_dataloader,test_dataloader
 
 
-# if __name__ == "__main__":
-#     generate_train_test_split()
+if __name__ == "__main__":
+
+    print("loading dataset")
+   # ds = GeneticDataset()
+    ds = SynGeneticDataset(path = "finalruns/UnetMLP/")
+    normds = []
+    for i in range(len(ds)):
+        normds.append(ds[i][0].numpy())
+    normds = np.asarray(normds)
+    print(normds.shape)
+    print("transforming data back")
+    transform_data_back(normds, "finalruns/UnetMLP_back.pkl")
 
 #processes_data()

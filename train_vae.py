@@ -3,7 +3,7 @@ import torch
 from diffusion_Process import GuassianDiffusion
 from unets import UNet, UNet1d, PosSensitiveUnet, PosSensitiveUnetDeep
 from model import  Unet2D, UnetMLP
-from vae import VariationalAutoencoder
+from vae import VariationalAutoencoder, Autoencoder
 from dataloader import *
 import wandb
 from utils import *
@@ -32,11 +32,12 @@ def compute_mse_baseline(dataloader):
         
 
 if __name__ == '__main__':
-    wandb.init(project="diffusionGeneVAE", config = config)
+    wandb.init(project="diffusionGeneAE", config = config)
     dataloader,valdataloader = GeneticDataloaders(config["batch_size"]*gradient_accumulation_steps, True)
    # mean_mse = compute_mse_baseline(dataloader) #results in mean_mse 0.5125327877716526
    # print("mean_mse", mean_mse)
-    model = VariationalAutoencoder(num_channels).to(device)
+    #model = VariationalAutoencoder(num_channels).to(device)
+    model = Autoencoder(gene_size*num_channels).to(device)
     critertion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr_vae)
   #  optimizer = AdamSLS([[param for param in model.parameters()]], c = 0.3)
@@ -59,29 +60,27 @@ if __name__ == '__main__':
             genes, _ = next(train_iter)
             def closure(backward=False):
                 accloss = 0.0
-                accmseloss = 0.0
-                acckldloss = 0.0
+
                 for micro_step in range(gradient_accumulation_steps):
                     genes_small = genes[micro_step*batch_size:(micro_step+1)*batch_size].to(device)
                     genes_small  = genes_small.to(device).float().permute(0,2,1) #shape (batch_size, num_channels, gene_size)
                     genes_r = model(genes_small)
                 #  genes_r = genes_r.reshape(genes.shape)
                     mseloss = ((genes_small - genes_r)**2).mean() 
-                    kldloss = model.kl * kl_factor
-                    loss = mseloss + kldloss
-                    loss = loss/ gradient_accumulation_steps
+                   # kldloss = model.kl * kl_factor
+                   # loss = mseloss + kldloss
+                    loss = mseloss/ gradient_accumulation_steps
                     accloss += loss
-                    accmseloss += mseloss/ gradient_accumulation_steps
-                    acckldloss += kldloss/ gradient_accumulation_steps
+                   # acckldloss += kldloss/ gradient_accumulation_steps
                     if backward:
                         loss.backward()
-                return accloss ,mseloss, kldloss
+                return accloss 
             def closure_with_backward():
                 return closure(backward=True)
             
           #  loss = optimizer.step(closure = closure, closure_with_backward = closure_with_backward)
             
-            loss,mseloss, kldloss = closure_with_backward()
+            loss = closure_with_backward()
             if torch.abs(loss) > 1e6:
                 optimizer.zero_grad()
                 print("loss too high, skipping step")
@@ -94,7 +93,7 @@ if __name__ == '__main__':
                 print(f"epoch: {e}, step: {step}, loss: {avgloss/avglosssteps}")
                 avgloss = 0
                 avglosssteps = 0
-            log_dict = {"loss": loss.item(), "kldloss": kldloss, "mseloss": mseloss}
+            log_dict = {"loss": loss.item()}
 
             time_taken = time.time() - start
             ema_time = ema_time * 0.99 + time_taken * 0.01 #exponential moving average
@@ -120,7 +119,7 @@ if __name__ == '__main__':
                 #     break
             # assert (genes.max().item() <= 1) and (0 <= genes.min().item())
                 genes  = genes.to(device).float().permute(0,2,1)
-                genes_r = model(genes, train = False)
+                genes_r = model(genes)
                 loss = ((genes - genes_r)**2).mean() 
                 avgloss = avgloss  + loss.item()
                 avglosssteps = avglosssteps + 1
