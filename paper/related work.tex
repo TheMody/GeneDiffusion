@@ -1,0 +1,105 @@
+
+
+\subsection{Unsupervised Learning on Genetic Data}
+
+A popular paradigm in recent successful deep learning schemes, is pre-training large models on unlabeled data to make use of large amounts of training data, without needing tedious or sometimes impossible human provided labels.
+
+The transformer model \citep{vaswani2017attention} popularized this approach on the natural language domain by combining it with architectures capable of learning arbitrary relations in data. 
+
+The same approach is possible for the genetics domain and will enable many use cases previously thought impossible, similar to the language domain.
+
+\subsection{Working with Long Sequences}
+
+A common problem when working with genetic data is the size of the data and the long range interactions which have to be considered.
+
+HyenaDNA \citep{nguyen2023hyenadna} is a powerful state of the art transformer based architecture which is able to process up to a million tokens at once using an adapted form of attention. But even with this latest technology it fails to be able to process whole human genomes which are about 3 billion base pairs long.
+
+Research in deep learning has investigated projecting data into a shared embedding space in which long sequences can be greatly compressed. The most widely known use case for this is the Vision Transformer \citep{dosovitskiy2021an} which works directly with images, even though transformers typically can not process sequences of these sizes due to computational limitations. They achieve this feat by compressing regions, they call patches of an image into a single embedding. This shared projection is typically done by a small MLP or CNN which is the same for each image region. 
+
+Other works, especially in the diffusion domain, for example Stable Diffusion by \cite{rombach2021highresolution} have also adopted the paradigm of no longer working directly on the data but rather on a compressed version of it. This is typically called working in the embedding space and we take great inspiration from this principle.
+
+\subsection{Diffusion Models}
+In this section we will give a rough outline of the diffusion process used. For a more detailed look at diffusion processes we recommend the works by \cite{ddpm, ddim}
+\subsubsection{Training}
+Diffusion Models are a relatively new sub-field in generative AI which add Gaussian noise $\epsilon = N(\mu,\sigma)$ with variance $\sigma = 1$ and mean $\mu = 0$ to data $x \in D$ to generate noised data $x_n$ according to some noise schedule in $t \in (0,T)$ steps.
+
+First we define some helpful variables:
+\begin{equation}
+   \alpha(t) = 1-\beta(t)  ;
+   \overline{\alpha}(t) = \prod_{s=1}^t \alpha_s ;
+   \Tilde{\beta}(t) = \frac{1-\overline{\alpha}(t-1)}{1-\overline{\alpha}(t)}\beta(t)
+\end{equation}
+
+where $\beta_t$ represents the variances of the forward process, in practice it is a pre-determined scalar schedule increasing linearly from $\beta(1) = 10^{-4}$ to $\beta(T) = 0.02$, see \cite{ddpm}.
+
+\begin{equation}
+    x_n(t) = \sqrt{\overline{\alpha}(t)} \cdot \epsilon + \sqrt{1-\overline{\alpha}(t)}\cdot x
+\end{equation}
+
+The process is designed for a data distribution $D$ with mean $\sigma = 1$ and variance $\mu = 0$, which are easy pre-processing steps. 
+
+
+The recovery task is given the noised image and the noise schedule $t,x_n$ to predict the previously added noise $\epsilon$ we call the predicted noise $\epsilon_p$. This is typically realized by an artificial neural network $E$. 
+
+\begin{equation}
+     \epsilon_{p} = E(t,x_n(t))
+     \label{eq:nn}
+\end{equation}
+
+To recover the original data $x$ in a single step the predicted $x_p$ can be computed according to:
+\begin{equation}
+    x_p(t,x) = \frac{x_n(t) - (1-\sqrt{\overline{\alpha}(t)}) \cdot \epsilon_p}{\sqrt{\overline{\alpha}(t)}}
+    \label{eq:denoise}
+\end{equation}
+
+The loss function $L(x)$ of our neural network is simply:
+
+\begin{equation}
+    L(x) = ||\epsilon,\epsilon_p(x)||
+\end{equation}
+
+where $||\cdot,\cdot||$ is some distance norm, in our case we use the L2 norm also called mean squared error. The loss is not based on the recovered data $x_p$ as the predicted noise $\epsilon_p$ contains the same information but with less intermediate steps.
+%Typically t is chosen as an integer value between 1 and 1000 and then scaled into the range $(0,1)$ by dividing with the maximum step e.g. 1000. 
+During training $t$ is drawn from a uniform random distribution for each input sample.
+
+\subsubsection{Data Generation}
+Generating new data is done analogously to recovering the original data. Starting from complete noise $x_{n,T} = N(0,I)$, the newly generated data-point is recovered by iteratively refining the prediction of new noised $x_p$ according to Eq \ref{eq:denoise} but each step $t$ new noise is added to remain in the same distribution as the original $x_n$. 
+
+
+
+
+\begin{equation}
+    x_{n,t-1} = \frac{1}{\sqrt{\alpha(t)}} \cdot (x_{t} - \frac{1-\alpha(t)}{\sqrt{1-\overline{\alpha}(t)}} \epsilon_p(x_{n,t},t)) + \sqrt{\Tilde{\beta}(t)}  N(0,I) %t_{k-1} \cdot \epsilon + (1-t_{k}) \cdot x_{p,k}(t_{k},x_{k})
+    \label{eq:generation}
+\end{equation}
+
+This process is called DDPM \citep{ddpm} and has been highly successful in generating realistic artificial images and other data. 
+\bigbreak
+Furthermore, more information can be incorporated by presenting so called conditioning information $y$ to the neural network, changing Equation \ref{eq:nn} to:
+
+\begin{equation}
+    \epsilon_{p} = E(t,x_n(t),y)
+\end{equation}
+
+typically $y$ is an input vector containing additional information about the data sample $x$. For example, in the image case this could be the caption of the image, or whether or not a certain class is present in the image.
+
+% The data generation process can be sped up by not taking every single step but only a subset in intervalls $dt$, this is accomplished by following DDIM \citep{ddim}, changing Equation \ref{eq:generation} to:
+% \begin{equation}
+%     x_{n,t-dt} = \sqrt{\overline{\alpha}(t-dt)} * x_p(t,x) + \sqrt{1-\overline{\alpha}(t-dt)} * \epsilon_p
+%     \label{eq:ddim}
+% \end{equation}
+
+% \subsection{Classifier Free Guidance}
+% In the image generation domain it was found that classifier free guidance \cite{} is crucial to obtain high quality images that are aligned with the given conditioning.
+
+% We obtain both the conditioned $\epsilon_{p,c} = E(t,x_n(t),y)$ and the unconditioned output $\epsilon_{p,u} = E(t,x_n(t))$  of the model. Following, they are combined to guide the generation process by changing Equation \ref{eq:nn} to:
+
+% \begin{equation}
+%     \epsilon_p = (1+\lambda) \epsilon_{p,c} - \lambda \epsilon_{p,u}
+% \end{equation}
+
+% % \begin{equation}
+% %     x_p(t,x) = \frac{x_n(t) - t \cdot ((1+\lambda) \cdot \epsilon_{p,c} - \lambda \cdot \epsilon_{p,u})}{1-t}
+% % \end{equation}
+
+% By modifying guidance parameter $\lambda \in (0,\infty)$ we can choose how strong the conditioning guides the generation process. $\lambda = 0$ results in the normal conditioned generation process, while $\lambda = \infty$ only produces features which are important to the conditioning. Typically values for image networks are in the range of $(0.5,3)$.

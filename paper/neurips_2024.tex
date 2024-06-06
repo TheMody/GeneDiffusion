@@ -1,0 +1,140 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2024
+
+
+% ready for submission
+%\usepackage{neurips_2024}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+\usepackage[preprint]{neurips_2024}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2024}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2024}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{wrapfig}
+\usepackage{multicol}
+\usepackage{epsfig}
+\usepackage{subfig}
+\usepackage{svg}
+\usepackage{amsmath}
+\usepackage{wrapfig}
+
+
+\title{Creating Synthetic Genomes using Diffusion Models}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+  Philip Kenneweg\\
+  AG Machine Learning\\
+  University of Bielefeld\\
+  \texttt{pkenneweg@*} \\
+  \And
+  Raghuram Dandinasivara\\
+  AG Genome Data Science\\
+  University of Bielefeld\\
+  \texttt{rdandinasivara@*} \\
+  \And
+  Alexander Schönhut\\
+  AG Genome Data Science\\
+  University of Bielefeld\\
+  \texttt{aschoen@*}\\
+  \And
+  Barbara Hammer\\
+  AG Machine Learning\\
+  University of Bielefeld\\
+  \texttt{bhammer@*}\\
+  *@techfak.uni-bielefeld.de
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+
+In this paper, we introduce the first diffusion model designed to generate complete synthetic human genomes. These genomes closely mimic real human genomes and serve as a nearly perfect substitute for genuine ones in disease classification tasks. This innovation addresses a significant challenge in current research: real human genomes are highly sensitive private data and cannot be widely distributed due to privacy concerns. By using synthetic genomes, researchers can train AI models and identify correlations without stringent data privacy measures. Additionally, training diffusion models allows the inclusion of unlabeled data, reducing the reliance on large labeled datasets.
+
+%In this paper we present the first diffusion model capable of generating a complete synthetic human genome. These synthetic genome are realistic enough to be an almost perfect substitute for real human genomes in disease classification tasks. Thus we are able to solve a common problem in current research, real human genomes are very sensitive private data and can not be distributed widely. Synthetic human genomes do no longer have privacy concerns and can thus be used to train AI models, find correlations and much more without the need for rigorous data privacy measures. Another benefit of this approach is that unlabeled data can be incorporated in training diffusion models, thus reducing the need for large amounts of accurate labels.
+%Generating realistic human genomes is a 
+
+ %In this paper we present the first full human genome diffusion model. It is capable of generating a complete synthetic human genome. This can be used to train classification models, which generalize on unseen data. The benefits of this technology are the elimination of privacy concerns, as well as the usage of modern unsupervised deep learning technology to better generalize to unseen data. We are confident that this first step enables a wide variety of future applications.
+\end{abstract}
+
+
+\section{Introduction}
+\input{introduction}
+
+
+\section{Related Work}
+\label{sec:related_work}
+\input{related work}
+
+\section{Methods}
+\label{sec:methods}
+\input{methods}
+
+\section{Experiments}
+\label{sec:experiments}
+\input{experiments}
+
+\section{Conclusion}
+\input{conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{reference}
+
+\end{document}

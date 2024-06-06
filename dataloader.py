@@ -168,6 +168,8 @@ def transform_data_back(x, save= "ds/backtransformed_ds"):
 
     # now it should be the same lenght as the original dataset
     print(len(names), x.shape[1])
+    print(x[-1])
+    print(np.asanyarray(ds.iloc[len(ds)-1,:].values))
 
     #save the dataset
     fileObject = open(save, 'wb')
@@ -354,14 +356,14 @@ def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_
 if __name__ == "__main__":
 
     print("loading dataset")
-   # ds = GeneticDataset()
-    ds = SynGeneticDataset(path = "finalruns/UnetMLP/")
+    ds = GeneticDataset()
+    #ds = SynGeneticDataset(path = "finalruns/UnetMLP/")
     normds = []
     for i in range(len(ds)):
         normds.append(ds[i][0].numpy())
     normds = np.asarray(normds)
     print(normds.shape)
     print("transforming data back")
-    transform_data_back(normds, "finalruns/UnetMLP_back.pkl")
+    transform_data_back(normds)# "finalruns/UnetMLP_back.pkl")
 
 #processes_data()
