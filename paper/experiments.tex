@@ -5,17 +5,7 @@ In this section we will look at the results of the models proposed in Section \r
 \subsection{Training Metrics}
 First we show loss curves during training on train and validation data of the different diffusion model types, see Figure \ref{fig:losscurvesall}.
 
-\begin{wrapfigure}{r}{0.5\textwidth}
-    \centering
-    \subfloat[train loss]{\includegraphics[width = 0.25\textwidth]{figures/losstrain.png}}
-    \subfloat[validation loss]{\includegraphics[width = 0.25\textwidth]{figures/lossval.png}}   \\
 
-    \subfloat[train rec error]{\includegraphics[width = 0.25\textwidth]{figures/recerrortrain.png}}
-    \subfloat[validation rec error]{\includegraphics[width = 0.25\textwidth]{figures/recerrorval.png}}
-
-    \caption{Top curves are smoothed loss curves for all diffusion model architectures during training on train and validation data. Bottom curves are smoothed reconstruction error e.g. $||x_p,x||$ during training and validation using single shot denoising according to Eq \ref{eq:denoise}.}
-    \label{fig:losscurvesall}
-\end{wrapfigure}
 
 We observe that no models have any problems with over-fitting. The CNN based models overall performs best with regards towards minimizing the train loss.
 
@@ -34,6 +24,17 @@ However, if we take a closer look at the reconstruction error of the model, visu
 We note that reconstruction error is highly related to the loss, but scaled by the noise schedule $t$, e.g. this error focuses more on large values of $t$.
 
 To further analyze this, in Figure \ref{fig:lossvsnoise} we visualize the reconstruction error curves vs amount of noise added of the different diffusion models. We can see that while the CNN has an overall better performance it focuses more on the fine detail of the structure e.g. recovering from small noise values, while the MLP architecture is more focused on recovering rough structure (e.g. high noise). 
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \centering
+  \subfloat[train loss]{\includegraphics[width = 0.25\textwidth]{figures/losstrain.png}}
+  \subfloat[validation loss]{\includegraphics[width = 0.25\textwidth]{figures/lossval.png}}   \\
+
+  \subfloat[train rec error]{\includegraphics[width = 0.25\textwidth]{figures/recerrortrain.png}}
+  \subfloat[validation rec error]{\includegraphics[width = 0.25\textwidth]{figures/recerrorval.png}}
+
+  \caption{Top curves are smoothed loss curves for all diffusion model architectures during training on train and validation data. Bottom curves are smoothed reconstruction error e.g. $||x_p,x||$ during training and validation using single shot denoising according to Eq \ref{eq:denoise}.}
+  \label{fig:losscurvesall}
+\end{wrapfigure}
 
 \begin{figure}
     \centering

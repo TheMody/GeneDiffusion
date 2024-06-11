@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex neurips_2024"] 1717664731 "neurips_2024.aux" "neurips_2024.bbl" "neurips_2024" 1717664733
+["bibtex neurips_2024"] 1717679545 "neurips_2024.aux" "neurips_2024.bbl" "neurips_2024" 1717679547
   "/usr/share/texlive/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
-  "neurips_2024.aux" 1717664733 11981 41de11467ca8c7f6d153e9e073658b2e "pdflatex"
+  "neurips_2024.aux" 1717679546 11981 c154c41a3435d8064a6e4387144d6ce3 "pdflatex"
   "reference.bib" 1717655922 10400 33441e61ea18a1bf377bc6cbfa3908aa ""
   (generated)
   "neurips_2024.bbl"
   "neurips_2024.blg"
-["pdflatex"] 1717664731 "/home/philipkenneweg/Documents/GeneDiffusion/paper/neurips_2024.tex" "neurips_2024.pdf" "neurips_2024" 1717664733
-  "/dev/null" 1717661623 0 d41d8cd98f00b204e9800998ecf8427e ""
+["pdflatex"] 1717679545 "/home/philipkenneweg/Documents/GeneDiffusion/paper/neurips_2024.tex" "neurips_2024.pdf" "neurips_2024" 1717679547
+  "/dev/null" 1717673133 0 d41d8cd98f00b204e9800998ecf8427e ""
   "/etc/texmf/web2c/texmf.cnf" 1707744255 475 c0e671620eb5563b2130f56340a5fde8 ""
   "/home/philipkenneweg/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1000.600pk" 1717663167 20008 9322ae67fbdc5afa33e82a8406bb8141 ""
   "/home/philipkenneweg/Documents/GeneDiffusion/paper/neurips_2024.tex" 1717664140 4859 70a81b5c21ef52b03ee18d02297a1a2a ""
@@ -154,7 +154,7 @@
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1707744787 165012 f177baa1c39a3ebd62c3096a43521a0d ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1707744791 1435851 be34535f2456dabfada6bc2a7315dbab ""
   "conclusion.tex" 1717655922 838 82f399db3c8cd64e1bd31e17562a2afb ""
-  "experiments.tex" 1717664695 9952 e080878e847347cb5a373fbfb251e1d2 ""
+  "experiments.tex" 1717679543 9939 3d5ef0d2ed61c82505583140b42667f7 ""
   "figures/Cnn.png" 1717655924 24569 1ec9ff265288a23c5ff9d2ec6481d45a ""
   "figures/MLP.png" 1717655924 21475 8e2e4ab8b5a15a393c3dca5fbe3ad0ee ""
   "figures/Transformer.png" 1717655924 26669 5c938df337264392636fc35e6c1df63b ""
@@ -166,10 +166,10 @@
   "figures/recerrorval.png" 1717655924 281918 48fb9917bed775517619f2ad3b7910fe ""
   "figures/umap.png" 1717655922 56873 c31eb2240ab9e26feaeea616cc7e0e07 ""
   "introduction.tex" 1717655922 1254 d5c16669616206b7fac26d9cf2940c5b ""
-  "methods.tex" 1717664728 12867 4bd72aa3cae83dbbc7c4a3691465d98c ""
-  "neurips_2024.aux" 1717664733 11981 41de11467ca8c7f6d153e9e073658b2e "pdflatex"
-  "neurips_2024.bbl" 1717664731 9369 abf6327eca1fc071c2aef040ae09f4b0 "bibtex neurips_2024"
-  "neurips_2024.out" 1717664733 3084 f04bad370d724d0d65609812dbd6c37a "pdflatex"
+  "methods.tex" 1717664899 12864 6ad066eb6ecedae4773844e656ff783c ""
+  "neurips_2024.aux" 1717679546 11981 c154c41a3435d8064a6e4387144d6ce3 "pdflatex"
+  "neurips_2024.bbl" 1717679545 9369 abf6327eca1fc071c2aef040ae09f4b0 "bibtex neurips_2024"
+  "neurips_2024.out" 1717679546 3084 f04bad370d724d0d65609812dbd6c37a "pdflatex"
   "neurips_2024.sty" 1717655922 11625 b5f853b54a7a098e9e5b837f826d5daa ""
   "neurips_2024.tex" 1717664140 4859 70a81b5c21ef52b03ee18d02297a1a2a ""
   "related work.tex" 1717664490 7169 a3f940289952ea0831eefe794d5b316c ""

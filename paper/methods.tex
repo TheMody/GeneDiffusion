@@ -43,11 +43,9 @@ We base our Diffusion Model on the popular Unet Architecture by \citet{Unet} but
 We evaluate multiple possible Unet architectures where we replace the 2D variants of convolutions with their 1D equivalents or with a Multi-Layer-Perceptron. Another variant which was tried, was a standard transformer encoder structure similar to the one in \cite{bert}, but with learnable positional embeddings, as well as two additional tokens to inject the time $t$ and class $y$ information and an embedding layer similar to the one used for images in VIT\citep{vit} to reduce the number of input tokens. In Figure \ref{fig:unet} we visualize the proposed UnetMLP architecture. The 1D convolutional architecture includes multi-headed attention in the intermediate layers to share global information, this is very similar to what is done for images and needed to reduce the sequential bias introduced by convolutions.
 The dense layer architecture does not incorporate this feature.
 
-In general we want to point out that the approach using convolutions introduces a sequential bias, which does not make sense in this context, but it greatly limits the amount of parameters which have to be learned.
+In general, we want to point out that the approach using 1-d convolutions introduces a sequential bias, which is not biologicaly motivated, but it greatly limits the amount of parameters which have to be learned.
 
-
-
-In contrast the dense model does not incorporate any bias, but it has been shown in many domains that even though in principle fully connected layers can approximate arbitrary functions, they fail to find suitable solutions due to their over-parameterization.
+In contrast, the dense model does not incorporate any bias, but it has been shown in many domains that even though in principle fully connected layers can approximate arbitrary functions, they fail to find suitable solutions due to their over-parameterization.
 
 A fully attention based model like the transformer encoder also does not incorporate any spatial bias and should be suitable for this kind of data.
 

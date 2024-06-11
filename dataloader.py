@@ -16,6 +16,137 @@ def load_data(processed = True):
 
     return np.asarray(dataset_X), np.asarray(Y)
 
+def load_data_1k(processed = True):
+    print("Loading data...")
+    dataset_X = pickle.load(open("data/processed_ds_genepca","rb"))
+    print("Data loaded!")
+
+    return np.asarray(dataset_X), np.zeros(dataset_X.shape[0])
+
+def processes_data_1k():
+    ds,Y=pickle.load(open('data/gene_pca.features.pkl','rb'))
+    names = list(ds.columns.values)
+    print(names)
+    for i in range(len(names)):
+        split  = names[i].split(":")
+        names[i] = split[0]+":"+split[1]
+   # print(names)
+
+    n_unique, countunique = np.unique(names, return_counts=True)
+   # print(len(n_unique))
+   # print(countunique)
+    max_length = np.max(countunique)
+   # print(max_length)
+    tokenized_ds = []
+    for i in tqdm(range(len(ds))):
+        datapoint = np.asanyarray(ds.iloc[i,:].values)
+       # print(datapoint)
+      #  print(datapoint.shape)
+        tokens = []
+        last_name = names[0]
+        token = np.zeros(max_length)
+        pos_int_token = 0
+        for a,value in enumerate(datapoint):
+            if not last_name == names[a]:
+                tokens.append(token)
+                last_name = names[a]
+                pos_int_token = 0
+                token = np.zeros(max_length)
+            token[pos_int_token] = value
+            pos_int_token += 1
+        tokens.append(token)
+       # print(len(tokens))
+        datapoint = np.asarray(tokens)
+      #  print(datapoint.shape)
+        #print(datapoint.shape)
+        tokenized_ds.append(datapoint)
+    # break
+
+    tokenized_ds = np.asarray(tokenized_ds)
+    print(tokenized_ds.shape)
+    fileObject = open("data/processed_ds_genepca", 'wb')
+    pickle.dump(tokenized_ds,fileObject )
+    fileObject.close()
+    # for column in dataset_X:
+    #     print(column)
+
+
+def generate_train_test_split_1k(processed = True, normalize = normalize_data):
+    x,y = load_data_1k(processed = processed)
+
+    print("len of dataset", len(x))
+    
+    processed = processed
+    if normalize:
+        xstd = np.std(x, axis = 0)
+        xstd[xstd == 0.0] +=1
+        xmean = np.mean(x,axis=0)
+        x-xmean
+        x = x / xstd 
+        fileObject = open("data/normlization_1k.pkl", 'wb')
+        pickle.dump((xmean,xstd),fileObject )
+        fileObject.close()
+
+    
+
+    # if percent_unlabeled != 0:
+    #     y[:int(len(self.y)*percent_unlabeled)] = 2
+
+    #now we shuffle x and y
+    np.random.seed(42)
+    p = np.random.permutation(len(x))
+    x = x[p]
+    y = y[p]
+
+    x_train = x[:int(len(x)*0.9)]
+    y_train = y[:int(len(x)*0.9)]
+    x_test = x[int(len(x)*0.9):]
+    y_test = y[int(len(x)*0.9):]
+    print("len of test set", len(x_test))
+    print("len of train set", len(x_train))
+
+    fileObject = open("data/ds_test_1k", 'wb')
+    pickle.dump((x_test,y_test),fileObject )
+    fileObject.close()
+
+    fileObject = open("data/ds_train_1k", 'wb')
+    pickle.dump((x_train,y_train),fileObject )
+    fileObject.close()
+
+
+
+
+class GeneticDataset1k(Dataset):
+    def __init__(self, processed = True, normalize = normalize_data, label = None, percent_unlabeled = percent_unlabeled, train = True):
+        if not os.path.exists('data/ds_train_1k'):
+            print("generating new train/test split")
+            generate_train_test_split_1k(processed = processed, normalize = normalize)
+        if train:
+            self.x,self.y=pickle.load(open('data/ds_train_1k','rb'))
+        else:
+            self.x,self.y=pickle.load(open('data/ds_test_1k','rb'))
+
+        print("len of dataset", len(self.x))
+
+        
+
+    def __len__(self):
+        return len(self.x)
+
+    def __getitem__(self, idx):
+        genome = self.x[idx]
+      #  genome = genome[None,...]
+       # if self.processed:
+        genome = F.pad(torch.tensor(genome), (0,0,0, 26624 - genome.shape[0]), "constant", 0)
+     #   print(genome.shape)
+        label = torch.tensor(self.y[idx]).long()
+
+        # print("calculating zero maks")
+        # zero_mask = genome == 0
+        # print( zero_mask)
+        # torch.save(zero_mask, "data/zero_mask1k.pt")
+        return genome.float(), label
+
 def processes_data():
     ds,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
     names = list(ds.columns.values)
@@ -354,16 +485,18 @@ def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_
 
 
 if __name__ == "__main__":
-
-    print("loading dataset")
-    ds = GeneticDataset()
-    #ds = SynGeneticDataset(path = "finalruns/UnetMLP/")
-    normds = []
-    for i in range(len(ds)):
-        normds.append(ds[i][0].numpy())
-    normds = np.asarray(normds)
-    print(normds.shape)
-    print("transforming data back")
-    transform_data_back(normds)# "finalruns/UnetMLP_back.pkl")
+    #processes_data_1k()
+    ds = GeneticDataset1k()
+    print(ds[0])
+    # print("loading dataset")
+    # ds = GeneticDataset()
+    # #ds = SynGeneticDataset(path = "finalruns/UnetMLP/")
+    # normds = []
+    # for i in range(len(ds)):
+    #     normds.append(ds[i][0].numpy())
+    # normds = np.asarray(normds)
+    # print(normds.shape)
+    # print("transforming data back")
+    # transform_data_back(normds)# "finalruns/UnetMLP_back.pkl")
 
 #processes_data()

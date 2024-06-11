@@ -6,10 +6,10 @@ from model import  Unet2D, UnetMLP, UnetMLPandCNN, EncoderModelDiffusion, Baseli
 from dataloader import *
 import wandb
 from utils import *
-from generate import generate_sample
-from config import *
+from generate1k import generate_sample
+from config_1k import *
 import time
-from train_classifier import train_classifier
+#from train_classifier_1k import train_classifier
 from PIL import Image
 import matplotlib.pyplot as plt
 
@@ -21,9 +21,17 @@ def mse_loss_masked(pred, target, mask):
 
 def train_diffusion():
     wandb.init(project="diffusionGene", config = config)
-    dataloader,valdataloader = GeneticDataloaders(config["batch_size"], True)
+   # dataloader,valdataloader = GeneticDataloaders(config["batch_size"], True)
+
+    train_dataset = GeneticDataset1k(train = True)
+    test_dataset = GeneticDataset1k(train = False)
+    dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
+                                           shuffle=True)
+    valdataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
+                                          shuffle=True)
    # diffusion = diffusion_process(max_steps, 32, 32)
     diffusion = GuassianDiffusion(max_steps)
+    diffusion.zero_mask = torch.tensor(zero_mask).permute(1,0)
   #  model = Unet2D(3,3, hidden_dim=[64,128,256,512], c_emb_dim=num_classes).to(device)
   #  model = torch.load("modellarge.pt")
     if model_name == "Baseline":
@@ -74,8 +82,9 @@ def train_diffusion():
             acc_extra = 0.0
             for micro_step in range(gradient_accumulation_steps):
                 genes, labels = next(train_iter)
+             #   print(labels)
                 genes  = genes.to(device).float().permute(0,2,1)
-                print(labels)
+
                 #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
                 #mask out label with 10% probability
@@ -136,7 +145,7 @@ def train_diffusion():
             avgloss = 0
             avglosssteps = 0
             acc_rec_error = 0.0
-            ts = max_steps//2
+            ts = 0
             histogramm = torch.zeros((max_steps,2)).to(device)
             for step, (genes, labels) in enumerate(valdataloader):
                 # if step > 100:
@@ -150,6 +159,9 @@ def train_diffusion():
                 else:
                     t = torch.Tensor([range(ts, ts+len(genes))]).type(torch.int64).squeeze(0).to(device)
                     ts = ts + len(genes)
+
+                t = t*2 % max_steps
+            #    print(t)
                 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
@@ -170,6 +182,7 @@ def train_diffusion():
                 avglosssteps = avglosssteps + 1
 
             histogramm = histogramm.cpu().numpy()
+            histogramm = histogramm[histogramm[:, 1] != 0]
             plt.bar(np.arange(len(histogramm[:, 0]))/len(histogramm[:, 0]), histogramm[:, 0], width = 1/len(histogramm[:, 0]))
             plt.yscale("log")
             plt.ylim (1e-2, 5e1)
@@ -193,7 +206,7 @@ if __name__ == '__main__':
     model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()
     generate_sample(model, num_of_samples, savefolder=save_path)
-    train_classifier("mlp")
-    train_classifier("cnn")
-    train_classifier("transformer")
+    # train_classifier("mlp")
+    # train_classifier("cnn")
+    # train_classifier("transformer")
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.2.12)  6 JUN 2024 11:05
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.2.12)  6 JUN 2024 15:12
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -717,62 +717,71 @@ Package wrapfig Warning: Stationary wrapfigure forced to float on input line 41.
 
 Underfull \vbox (badness 7685) has occurred while \output is active []
 
- [4 <./figures/preprocess.jpg> <./figures/UnetMLP.pdf>] [5]) (./experiments.tex
-<figures/losstrain.png, id=231, 2537.48pt x 1332.98pt>
+ [4 <./figures/preprocess.jpg> <./figures/UnetMLP.pdf>] [5]) (./experiments.tex [6]
+<figures/losstrain.png, id=243, 2537.48pt x 1332.98pt>
 File: figures/losstrain.png Graphic file (type png)
 <use figures/losstrain.png>
-Package pdftex.def Info: figures/losstrain.png  used on input line 10.
+Package pdftex.def Info: figures/losstrain.png  used on input line 29.
 (pdftex.def)             Requested size: 99.37125pt x 52.19144pt.
-<figures/lossval.png, id=233, 2537.48pt x 1332.98pt>
+<figures/lossval.png, id=245, 2537.48pt x 1332.98pt>
 File: figures/lossval.png Graphic file (type png)
 <use figures/lossval.png>
-Package pdftex.def Info: figures/lossval.png  used on input line 11.
+Package pdftex.def Info: figures/lossval.png  used on input line 30.
 (pdftex.def)             Requested size: 99.37125pt x 52.19144pt.
-<figures/recerrortrain.png, id=234, 2537.48pt x 1332.98pt>
+<figures/recerrortrain.png, id=246, 2537.48pt x 1332.98pt>
 File: figures/recerrortrain.png Graphic file (type png)
 <use figures/recerrortrain.png>
-Package pdftex.def Info: figures/recerrortrain.png  used on input line 13.
+Package pdftex.def Info: figures/recerrortrain.png  used on input line 32.
 (pdftex.def)             Requested size: 99.37125pt x 52.19144pt.
-<figures/recerrorval.png, id=235, 2537.48pt x 1332.98pt>
+<figures/recerrorval.png, id=247, 2537.48pt x 1332.98pt>
 File: figures/recerrorval.png Graphic file (type png)
 <use figures/recerrorval.png>
-Package pdftex.def Info: figures/recerrorval.png  used on input line 14.
+Package pdftex.def Info: figures/recerrorval.png  used on input line 33.
 (pdftex.def)             Requested size: 99.37125pt x 52.19144pt.
- [6 <./figures/losstrain.png> <./figures/lossval.png> <./figures/recerrortrain.png> <./figures/recerrorval.png>]
-<figures/Cnn.png, id=258, 642.4pt x 481.8pt>
+<figures/Cnn.png, id=250, 642.4pt x 481.8pt>
 File: figures/Cnn.png Graphic file (type png)
 <use figures/Cnn.png>
-Package pdftex.def Info: figures/Cnn.png  used on input line 40.
+Package pdftex.def Info: figures/Cnn.png  used on input line 41.
 (pdftex.def)             Requested size: 131.17076pt x 98.37263pt.
-<figures/Transformer.png, id=259, 642.4pt x 481.8pt>
+<figures/Transformer.png, id=251, 642.4pt x 481.8pt>
 File: figures/Transformer.png Graphic file (type png)
 <use figures/Transformer.png>
-Package pdftex.def Info: figures/Transformer.png  used on input line 41.
+Package pdftex.def Info: figures/Transformer.png  used on input line 42.
 (pdftex.def)             Requested size: 131.17076pt x 98.37263pt.
-<figures/MLP.png, id=260, 642.4pt x 481.8pt>
+<figures/MLP.png, id=252, 642.4pt x 481.8pt>
 File: figures/MLP.png Graphic file (type png)
 <use figures/MLP.png>
-Package pdftex.def Info: figures/MLP.png  used on input line 42.
+Package pdftex.def Info: figures/MLP.png  used on input line 43.
 (pdftex.def)             Requested size: 131.17076pt x 98.37263pt.
-<figures/umap.png, id=261, 385.9218pt x 298.4751pt>
+
+
+Package wrapfig Warning: Collision between wrapping environments on input line 54.
+
+<figures/umap.png, id=253, 385.9218pt x 298.4751pt>
 File: figures/umap.png Graphic file (type png)
 <use figures/umap.png>
-Package pdftex.def Info: figures/umap.png  used on input line 55.
+Package pdftex.def Info: figures/umap.png  used on input line 56.
 (pdftex.def)             Requested size: 190.79109pt x 147.56117pt.
- [7 <./figures/Cnn.png> <./figures/Transformer.png> <./figures/MLP.png> <./figures/umap.png>]) (./conclusion.tex) (./neurips_2024.bbl [8] [9]) [10] (./neurips_2024.aux)
+
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 60.
+
+
+Package wrapfig Warning: Stationary wrapfigure forced to float on input line 130.
+
+[7 <./figures/Cnn.png> <./figures/Transformer.png> <./figures/MLP.png> <./figures/losstrain.png> <./figures/lossval.png> <./figures/recerrortrain.png> <./figures/recerrorval.png>]) (./conclusion.tex) (./neurips_2024.bbl [8 <./figures/umap.png>] [9]) [10] (./neurips_2024.aux)
 Package rerunfilecheck Info: File `neurips_2024.out' has not changed.
 (rerunfilecheck)             Checksum: F04BAD370D724D0D65609812DBD6C37A;3084.
  ) 
 Here is how much of TeX's memory you used:
- 17128 strings out of 480171
- 291463 string characters out of 5894489
- 646952 words of memory out of 5000000
+ 17119 strings out of 480171
+ 291385 string characters out of 5894489
+ 647952 words of memory out of 5000000
  34465 multiletter control sequences out of 15000+600000
- 507878 words of font info for 182 fonts, out of 8000000 for 9000
+ 507488 words of font info for 176 fonts, out of 8000000 for 9000
  59 hyphenation exceptions out of 8191
- 94i,10n,92p,1060b,477s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 94i,10n,92p,1060b,479s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc} </home/philipkenneweg/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt1000.600pk></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on neurips_2024.pdf (10 pages, 1391268 bytes).
+Output written on neurips_2024.pdf (10 pages, 1391208 bytes).
 PDF statistics:
  431 PDF objects out of 1000 (max. 8388607)
  324 compressed objects within 4 object streams
