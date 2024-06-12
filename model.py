@@ -466,14 +466,18 @@ class MLPModel(nn.Module):
         return self.dense3(x)
 
 class ConvclsModel(nn.Module):
-    def __init__(self, num_classes=2, input_dim = 8, num_layers = 3):
+    def __init__(self, num_classes=2, input_dim = 8, num_layers = 3, input_size = 18432):
         super().__init__()
         hidden_dim = 64
      #   self.multilin = MultichannelLinear(18432, input_dim, 32)
         self.conv1 = nn.Conv1d(input_dim, hidden_dim, 3, stride = 2)
         self.convs = nn.ModuleList([nn.Conv1d(hidden_dim, hidden_dim, 3, stride = 2) for i in range(num_layers)])
-        
-        self.dense3 = nn.Linear(73664, num_classes)
+        def size_after_conv(kernel, stride, size):
+            return math.floor((size-kernel)/stride) +1
+        size = size_after_conv(3,2,size_after_conv(3,2,size_after_conv(3,2,size_after_conv(3,2,input_size))))
+        print(size)
+        self.dense3 = nn.Linear(hidden_dim*size, num_classes)
+       # self.dense3 = nn.Linear(73664, num_classes)
 
     def forward(self, x):
        # x = F.gelu(self.multilin(x))

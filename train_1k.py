@@ -196,7 +196,7 @@ def train_diffusion():
             print(f"val at epoch: {e},  loss: {avgloss/avglosssteps} rec error:  {acc_rec_error/avglosssteps}")
             if acc_rec_error/avglosssteps < minloss:
                 minloss = acc_rec_error/avglosssteps
-                print("saving model at epoch: "  + str(e) +" ,with loss: "+ str(acc_rec_error/avglosssteps) )
+                print("saving model at epoch: "  + str(e) +" ,with val rec error: "+ str(acc_rec_error/avglosssteps) )
                 torch.save(model, save_path+"/"+"model.pt")
 
                 

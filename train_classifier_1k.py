@@ -17,7 +17,7 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     if model == "mlp":
       model = MLPModel(num_classes= num_classes,num_input=num_channels*gene_size)#75584)#
     elif model == "cnn":
-        model = ConvclsModel(num_classes= num_classes,input_dim=num_channels)
+        model = ConvclsModel(num_classes= num_classes,input_dim=num_channels, input_size = gene_size)
     elif model == "transformer":
         model = EncoderModel(num_classes= num_classes)
         
@@ -122,4 +122,4 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
 
 
 if __name__ == "__main__":
-    train_classifier("mlp", path = "finalruns/UnetCombined", data = "real")
+    train_classifier("cnn", path = "finalruns/UnetCombined", data = "real")
