@@ -19,7 +19,7 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     elif model == "cnn":
         model = ConvclsModel(num_classes= num_classes,input_dim=num_channels, input_size = gene_size)
     elif model == "transformer":
-        model = EncoderModel(num_classes= num_classes)
+        model = EncoderModel(num_classes= num_classes, input_size = gene_size)
         
     model = model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
@@ -122,4 +122,4 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
 
 
 if __name__ == "__main__":
-    train_classifier("cnn", path = "finalruns/UnetCombined", data = "real")
+    train_classifier("transformer", path = "finalruns/UnetCombined", data = "real")
