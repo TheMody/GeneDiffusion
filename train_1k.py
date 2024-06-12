@@ -41,7 +41,7 @@ def train_diffusion():
     if model_name == "UnetMLPlarge":
         model = UnetMLP(num_channels*gene_size,num_channels*gene_size,hidden_dim=[2048,1024,512,256], c_emb_dim=num_classes+1).to(device)
     if model_name == "Transformer":
-        model = EncoderModelDiffusion().to(device)
+        model = EncoderModelDiffusion(num_classes=num_classes+1).to(device)
     if model_name == "UnetCombined":
         model = UnetMLPandCNN(channels_CNN = num_channels,channels_MLP = num_channels*gene_size,  base_width=base_width,num_classes=num_classes+1).to(device)
     if model_name == "Unet":
