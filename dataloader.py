@@ -20,8 +20,8 @@ def load_data_1k(processed = True):
     print("Loading data...")
     dataset_X = pickle.load(open("data/processed_ds_genepca","rb"))
     print("Data loaded!")
-
-    return np.asarray(dataset_X), np.zeros(dataset_X.shape[0])
+    y = pickle.load(open("data/y_genepca","rb"))
+    return np.asarray(dataset_X), np.asarray(y)
 
 def processes_data_1k():
     ds,Y=pickle.load(open('data/gene_pca.features.pkl','rb'))
@@ -30,7 +30,10 @@ def processes_data_1k():
     for i in range(len(names)):
         split  = names[i].split(":")
         names[i] = split[0]+":"+split[1]
-   # print(names)
+   # print(ds)
+   # print(Y)
+   # for y in Y:
+     #   print(y)
 
     n_unique, countunique = np.unique(names, return_counts=True)
    # print(len(n_unique))
@@ -67,8 +70,32 @@ def processes_data_1k():
     fileObject = open("data/processed_ds_genepca", 'wb')
     pickle.dump(tokenized_ds,fileObject )
     fileObject.close()
-    # for column in dataset_X:
-    #     print(column)
+
+def processes_data_1k_labels():
+
+    #now load the y data
+    with open('genepca/integrated_call_samples_v3.20130502.ALL.panel') as f:
+        lines = f.readlines()[1:]
+        #seperate lines by tab
+        lines = [line.split("\t") for line in lines]
+        #get the super population
+        y = [line[1] for line in lines]
+
+    y = np.asarray(y)
+    y_unique = np.unique(y)
+    print("number of unique labels",len(y_unique))
+    new_y = np.zeros(len(y))
+    for i, yu in enumerate(y_unique):
+        new_y[y==yu] = i
+   # for i in range(len(y)):
+     #   print(y[i], new_y[i])
+    #save the y data
+    fileObject = open("data/y_genepca", 'wb')
+    pickle.dump(new_y.astype(np.int64),fileObject )
+    fileObject.close()
+
+
+
 
 
 def generate_train_test_split_1k(processed = True, normalize = normalize_data):
@@ -485,9 +512,9 @@ def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_
 
 
 if __name__ == "__main__":
-    #processes_data_1k()
+    processes_data_1k_labels()
     ds = GeneticDataset1k()
-    print(ds[0])
+    print(ds[0:10])
     # print("loading dataset")
     # ds = GeneticDataset()
     # #ds = SynGeneticDataset(path = "finalruns/UnetMLP/")

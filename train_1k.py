@@ -9,7 +9,7 @@ from utils import *
 from generate1k import generate_sample
 from config_1k import *
 import time
-#from train_classifier_1k import train_classifier
+from train_classifier_1k import train_classifier
 from PIL import Image
 import matplotlib.pyplot as plt
 
@@ -20,7 +20,7 @@ def mse_loss_masked(pred, target, mask):
     return torch.mean(((pred - target) ** 2) * torch.stack([mask for _ in range(pred.shape[0])]))
 
 def train_diffusion():
-    wandb.init(project="diffusionGene", config = config)
+    wandb.init(project="diffusionGene1k", config = config)
    # dataloader,valdataloader = GeneticDataloaders(config["batch_size"], True)
 
     train_dataset = GeneticDataset1k(train = True)
@@ -82,7 +82,7 @@ def train_diffusion():
             acc_extra = 0.0
             for micro_step in range(gradient_accumulation_steps):
                 genes, labels = next(train_iter)
-             #   print(labels)
+               # print(labels)
                 genes  = genes.to(device).float().permute(0,2,1)
 
                 #print("abs_mean of data",data_abs_mean(genes))
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()
     generate_sample(model, num_of_samples, savefolder=save_path)
-    # train_classifier("mlp")
-    # train_classifier("cnn")
-    # train_classifier("transformer")
+    train_classifier("mlp")
+    train_classifier("cnn")
+    train_classifier("transformer")
 
