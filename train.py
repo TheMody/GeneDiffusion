@@ -75,7 +75,7 @@ def train_diffusion():
             for micro_step in range(gradient_accumulation_steps):
                 genes, labels = next(train_iter)
                 genes  = genes.to(device).float().permute(0,2,1)
-                print(labels)
+               # print(labels)
                 #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
                 #mask out label with 10% probability
@@ -87,10 +87,7 @@ def train_diffusion():
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
-              #  print(torch.max(eps))
-              #  print(torch.min(eps))
                 pred_eps = model(xt, t, y = labels)
-               # print(pred_eps.shape)
                 if enforce_zeros:
                     loss = mse_loss_masked(pred_eps,eps, not_zero_mask)
                 else:
@@ -129,7 +126,7 @@ def train_diffusion():
                 log_dict["lr"] = lrs.get_last_lr()[0]
 
             wandb.log(log_dict)
-
+          #  break
        # if e % 1000 == 0 and e != 0:
         model.eval()
         with torch.no_grad():
@@ -138,6 +135,8 @@ def train_diffusion():
             acc_rec_error = 0.0
             ts = max_steps//2
             histogramm = torch.zeros((max_steps,2)).to(device)
+            if model_name == "UnetCombined":
+                histogramm_lambda = torch.zeros((max_steps,2)).to(device)
             for step, (genes, labels) in enumerate(valdataloader):
                 # if step > 100:
                 #     break
@@ -163,7 +162,11 @@ def train_diffusion():
                 
                 histogramm[t, 0] = (histogramm[t, 0]  * histogramm[t, 1] + torch.mean(torch.abs(x_r-genes), dim = (1,2))) / (histogramm[t, 1]  +1)
                 histogramm[t, 1] += 1
-                
+
+                if model_name == "UnetCombined":
+                    histogramm_lambda[t, 0] = (histogramm_lambda[t, 0]  * histogramm_lambda[t, 1] + torch.mean(model.weighing_factor , dim = (1,2))) / (histogramm_lambda[t, 1]  +1)
+                    histogramm_lambda[t, 1] += 1
+
                 acc_rec_error += data_abs_mean(x_r-genes).item()
 
                 avgloss = avgloss  + loss.item()
@@ -176,8 +179,22 @@ def train_diffusion():
             plt.xlabel("noise ratio")
             plt.ylabel("reconstruction error")
             plt.savefig(save_path+"/"+"histogramm.png")
+            plt.close()
+            if model_name == "UnetCombined":
+                histogramm_lambda = histogramm_lambda.cpu().numpy()
+               # plt.bar(np.arange(len(histogramm_lambda[:, 0]))/len(histogramm_lambda[:, 0]), histogramm_lambda[:, 0], width = 1/len(histogramm_lambda[:, 0]))
+                plt.plot(np.arange(len(histogramm_lambda[:, 0]))/len(histogramm_lambda[:, 0]), histogramm_lambda[:, 0], color = "red")
+             #   plt.yscale("log")
+                plt.ylim (0, 1)
+                plt.xlim(0,1)
+                plt.xlabel("noise ratio")
+                plt.ylabel("lambda for MLP+CNN")
+                plt.savefig(save_path+"/"+"histogramm_lambda.png")
+                plt.close()
+                img_lambda = Image.open(save_path+"/"+"histogramm_lambda.png")
+
             img = Image.open(save_path+"/"+"histogramm.png")
-            log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps, "histogramm": wandb.Image(img)}
+            log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps, "histogramm": wandb.Image(img), "histogramm_lambda":wandb.Image(img_lambda)}
             wandb.log(log_dict)
         
             print(f"val at epoch: {e},  loss: {avgloss/avglosssteps} rec error:  {acc_rec_error/avglosssteps}")

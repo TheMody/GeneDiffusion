@@ -10,6 +10,8 @@ from config import *
 def load_data(processed = True):
     print("Loading data...")
     dataset_X,Y=pickle.load(open('data/sigSNPs_pca.features.pkl','rb'))
+    print(dataset_X)
+    print(Y)
     if processed:
         dataset_X = pickle.load(open("data/processed_ds","rb"))
     print("Data loaded!")
@@ -414,6 +416,8 @@ class GeneticDataset(Dataset):
         else:
             self.x,self.y=pickle.load(open('data/ds_test','rb'))
 
+        # if train:
+        #     self.x = self.x[:int(len(self.x)/20)]
         print("len of dataset", len(self.x))
         #super(GeneticDataset, self).__init__()
         # self.x,self.y = load_data(processed = processed)
@@ -512,9 +516,11 @@ def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_
 
 
 if __name__ == "__main__":
-    processes_data_1k_labels()
-    ds = GeneticDataset1k()
-    print(ds[0:10])
+    x,y = load_data(False)
+
+    # processes_data_1k_labels()
+  #  ds = GeneticDataset1k()
+    # print(ds[0:10])
     # print("loading dataset")
     # ds = GeneticDataset()
     # #ds = SynGeneticDataset(path = "finalruns/UnetMLP/")

@@ -24,7 +24,7 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     model = model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
     loss_fn = torch.nn.CrossEntropyLoss()
-    wandb.init(project="diffusionGene", config=config)
+    wandb.init(project="diffusionGene1k", config=config)
     #data
     
     if data == "syn":
@@ -122,4 +122,6 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
 
 
 if __name__ == "__main__":
+    train_classifier("mlp", path = "finalruns/UnetCombined", data = "real")
+    train_classifier("cnn", path = "finalruns/UnetCombined", data = "real")
     train_classifier("transformer", path = "finalruns/UnetCombined", data = "real")
