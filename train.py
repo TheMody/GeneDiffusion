@@ -126,7 +126,6 @@ def train_diffusion():
                 log_dict["lr"] = lrs.get_last_lr()[0]
 
             wandb.log(log_dict)
-            break
        # if e % 1000 == 0 and e != 0:
         model.eval()
         with torch.no_grad():
