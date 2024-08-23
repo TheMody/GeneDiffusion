@@ -126,7 +126,7 @@ def train_diffusion():
                 log_dict["lr"] = lrs.get_last_lr()[0]
 
             wandb.log(log_dict)
-          #  break
+            break
        # if e % 1000 == 0 and e != 0:
         model.eval()
         with torch.no_grad():
@@ -145,9 +145,11 @@ def train_diffusion():
                 labels = labels.to(device)
                 if ts + len(genes) > max_steps:
                     t = torch.Tensor([*[i for i in range(ts, min(ts+len(genes),max_steps))], *[i for i in range(1, ts+len(genes)-(max_steps-1))]]).type(torch.int64).squeeze(0).to(device)
+                    print(" t",t.shape)
                     ts =  ts+len(genes)-(max_steps-1)
                 else:
                     t = torch.Tensor([range(ts, ts+len(genes))]).type(torch.int64).squeeze(0).to(device)
+                    print("normal t",t.shape)
                     ts = ts + len(genes)
                 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
