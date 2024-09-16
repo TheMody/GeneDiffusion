@@ -12,6 +12,7 @@ import time
 from train_classifier_1k import train_classifier
 from PIL import Image
 import matplotlib.pyplot as plt
+import umap
 
 def data_abs_mean(x):
     return torch.mean(torch.abs(x))
@@ -84,7 +85,6 @@ def train_diffusion():
                 genes, labels = next(train_iter)
                # print(labels)
                 genes  = genes.to(device).float().permute(0,2,1)
-
                 #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
                 #mask out label with 10% probability
@@ -98,6 +98,7 @@ def train_diffusion():
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
               #  print(torch.max(eps))
               #  print(torch.min(eps))
+                print(xt.shape)
                 pred_eps = model(xt, t, y = labels)
                # print(pred_eps.shape)
                 if enforce_zeros:

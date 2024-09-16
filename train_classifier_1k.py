@@ -28,20 +28,21 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     #data
     
     if data == "syn":
-      geneticDataSyn = SynGeneticDataset(path = path)#path = "syndaUnetconv/")path = "UnetMLP_supergood/"path = "syn_data_Transformer/"path = "syn_data_Transformer/"
-      train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
-      test_dataset = GeneticDataset1k(train = False)
-      test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
-                                          shuffle=True)
-     # _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)
-    else:
+        geneticDataSyn = SynGeneticDataset(path = path)
+        train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)
+      
+    elif data == "real":
         train_dataset = GeneticDataset1k(train = True)
-        test_dataset = GeneticDataset1k(train = False)
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
-                                            shuffle=True)
-        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
-                                          shuffle=True)
-      # train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0) 
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,shuffle=True)
+    elif data == "combined":
+        train_dataset = GeneticDataset1k(train = True)
+        print("amount of real data", len(train_dataset))
+        geneticDataSyn = SynGeneticDataset(path = path)
+        print("amount of synthetic data", len(geneticDataSyn))
+        concat_ds = torch.utils.data.ConcatDataset([train_dataset, geneticDataSyn])
+        train_dataloader = DataLoader(concat_ds,batch_size=config["batch_size"], shuffle=True)
+    test_dataset = GeneticDataset1k(train = False)
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,shuffle=True)
     
     max_step = (num_of_samples-test_set_size)/(batch_size*gradient_accumulation_steps)*epochs_classifier
     scheduler = CosineWarmupScheduler(optimizer, warmup=100, max_iters=max_step)#len(train_dataloader)*epochs_classifier//gradient_accumulation_steps)
@@ -49,11 +50,13 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     running_loss = 0.0
     best_acc = 0.0
     step = 0
+    steps_since_last_eval = 0
     for epoch in range(epochs_classifier):
         dataloader_iter = iter(train_dataloader)
         if step >= max_step-2:
             break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
+                steps_since_last_eval += 1
                 start = time.time()
                 optimizer.zero_grad()
                 accloss = 0.0
@@ -92,36 +95,38 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
                         
 
         # #evaluate model after epoch
-        with torch.no_grad():
-            accummulated_acc = 0.0
-            accummulated_loss = 0.0
-            for i, data in enumerate(test_dataloader):
-                inputs, labels = data
-              #  print(inputs.shape)
-                inputs = inputs.float().to(device)
-              #  print(inputs[0])
-                #inputs = preprocessing_function(inputs)
-                labels = labels.to(device)
-                # print("input",inputs.shape)
-                # print(inputs[0])
-                # print("labels",labels.shape)
-                # print(labels[0])
-                outputs = model(inputs)
-                loss = loss_fn(outputs, labels)
-                acc = torch.sum(torch.argmax(outputs, axis = 1) == labels)/labels.shape[0]
-                accummulated_acc += acc.item()
-                accummulated_loss += loss.item()
-            avg_acc = accummulated_acc/len(test_dataloader)
-            avg_loss = accummulated_loss/len(test_dataloader)
-            wandb.log({"test_loss_classifier": avg_loss, "test_accuracy_classifier": avg_acc})
-            print(' test epoch {} loss: {} accuracy: {}'.format(epoch+1, avg_loss, avg_acc))
-        if avg_acc > best_acc:
-            best_acc = avg_acc
-        #    torch.save(model,"classification_models/model.pt")
-            print(f"saved new best model with acc {best_acc}")
+        if steps_since_last_eval > 100: 
+            steps_since_last_eval = 0
+            with torch.no_grad():
+                accummulated_acc = 0.0
+                accummulated_loss = 0.0
+                for i, data in enumerate(test_dataloader):
+                    inputs, labels = data
+                #  print(inputs.shape)
+                    inputs = inputs.float().to(device)
+                #  print(inputs[0])
+                    #inputs = preprocessing_function(inputs)
+                    labels = labels.to(device)
+                    # print("input",inputs.shape)
+                    # print(inputs[0])
+                    # print("labels",labels.shape)
+                    # print(labels[0])
+                    outputs = model(inputs)
+                    loss = loss_fn(outputs, labels)
+                    acc = torch.sum(torch.argmax(outputs, axis = 1) == labels)/labels.shape[0]
+                    accummulated_acc += acc.item()
+                    accummulated_loss += loss.item()
+                avg_acc = accummulated_acc/len(test_dataloader)
+                avg_loss = accummulated_loss/len(test_dataloader)
+                wandb.log({"test_loss_classifier": avg_loss, "test_accuracy_classifier": avg_acc})
+                print(' test epoch {} loss: {} accuracy: {}'.format(epoch+1, avg_loss, avg_acc))
+            if avg_acc > best_acc:
+                best_acc = avg_acc
+            #    torch.save(model,"classification_models/model.pt")
+                print(f"saved new best model with acc {best_acc}")
 
 
 if __name__ == "__main__":
-    train_classifier("mlp", path = "finalruns/UnetCombined", data = "real")
-    train_classifier("cnn", path = "finalruns/UnetCombined", data = "real")
-    train_classifier("transformer", path = "finalruns/UnetCombined", data = "real")
+    train_classifier("mlp", path = "finalruns1k/UnetCombined/", data = "combined")
+   # train_classifier("cnn", path = "finalruns/UnetCombined", data = "real")
+  #  train_classifier("transformer", path = "finalruns/UnetCombined", data = "real")

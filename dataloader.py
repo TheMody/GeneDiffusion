@@ -152,9 +152,11 @@ class GeneticDataset1k(Dataset):
             generate_train_test_split_1k(processed = processed, normalize = normalize)
         if train:
             self.x,self.y=pickle.load(open('data/ds_train_1k','rb'))
+        #    self.x = self.x[:int(len(self.x)*0.05)]
+         #   self.y = self.y[:int(len(self.y)*0.05)]
         else:
             self.x,self.y=pickle.load(open('data/ds_test_1k','rb'))
-
+        
         print("len of dataset", len(self.x))
 
         
@@ -508,6 +510,15 @@ def GeneticDataSets( processed = True, label = None, percent_unlabeled = percent
 
 def GeneticDataloaders(batchsize, processed = True, percent_unlabeled = percent_unlabeled):
     train_dataset,test_dataset = GeneticDataSets(processed, percent_unlabeled = percent_unlabeled)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batchsize,
+                                           shuffle=True)
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batchsize,
+                                          shuffle=True)
+    return train_dataloader,test_dataloader
+
+def GeneticDataloaders1k(batchsize):
+    train_dataset = GeneticDataset1k(train = True)
+    test_dataset = GeneticDataset1k(train = False)
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batchsize,
                                            shuffle=True)
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batchsize,

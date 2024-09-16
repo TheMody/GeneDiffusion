@@ -12,6 +12,7 @@ import time
 from train_classifier import train_classifier
 from PIL import Image
 import matplotlib.pyplot as plt
+import torch.profiler
 
 def data_abs_mean(x):
     return torch.mean(torch.abs(x))
@@ -54,6 +55,9 @@ def train_diffusion():
   #  optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
     lrs = CosineWarmupScheduler(optimizer, warmup=100, max_iters=epochs*len(dataloader)//gradient_accumulation_steps)
 
+    #print model num parameters
+    num_params = sum(p.numel() for p in model.parameters())
+    print(f"number of parameters: {num_params}")
 
     if enforce_zeros:
         not_zero_mask = (zero_mask==0).permute(1,0).to(device)
@@ -61,13 +65,14 @@ def train_diffusion():
         os.mkdir(save_path)
     minloss = 1e10
     ema_time = 0.0
+    start = time.time()
     for e in range(epochs):
         model.train()
         avgloss = 0
         avglosssteps = 0
         train_iter = iter(dataloader)
         for step in range(len(dataloader)//gradient_accumulation_steps):
-            start = time.time()
+            
             #assert (genes.max().item() <= 1) and (0 <= genes.min().item()) todo normalize genes
             optimizer.zero_grad()
             accloss = 0.0
@@ -87,12 +92,21 @@ def train_diffusion():
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
+               # with torch.profiler.profile(with_flops=True, profile_memory=False, record_shapes=False) as prof:
+                print(xt.shape)
+                print(t.shape)
+                print(labels.shape)
                 pred_eps = model(xt, t, y = labels)
                 if enforce_zeros:
                     loss = mse_loss_masked(pred_eps,eps, not_zero_mask)
                 else:
                     loss = critertion(pred_eps,eps)
                 
+                # total_flops = 0
+                # for event in prof.key_averages():
+                #     if event.flops > 0:
+                #         total_flops += event.flops
+                # print(f"total flops: {total_flops}")
                 #print("abs_mean of reconstructed data",data_abs_mean(x_r))
                 x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
                 acc_extra += data_abs_mean(x_r-genes).item()
@@ -115,6 +129,7 @@ def train_diffusion():
             if model_name == "UnetCombined":
                 log_dict["weighing_factor"] = torch.mean(model.weighing_factor).item()
             time_taken = time.time() - start
+            start = time.time()
             ema_time = ema_time * 0.99 + time_taken * 0.01 #exponential moving average
             ema_time_corrected = ema_time / (1 - 0.99 ** (step + 1 + e * len(dataloader)//gradient_accumulation_steps))#bias corrected ema
             log_dict["time_per_step"] = time_taken

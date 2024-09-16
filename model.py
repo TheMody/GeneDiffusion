@@ -226,12 +226,20 @@ class UnetMLPandCNN(nn.Module):
         self.learnable_weight_time = nn.Sequential(nn.Linear(1,128), nn.SiLU(), nn.Linear(128,1))
         self.weighing_factor = 0
 
-    def forward(self,x,t,y=None):
-        x1 = self.MLP(x,t,y)
-        x2 = self.CNN(x,t,y)
+    def forward(self,x,t,y=None, output_bottleneck = False):
         weighing_factor = F.sigmoid(self.learnable_weight_time(t.unsqueeze(-1).float()/max_steps)).unsqueeze(-1)
+        if output_bottleneck:
+            x1,bottleneck_mlp = self.MLP(x,t,y, output_bottleneck = output_bottleneck)
+            x2, bottleneck_cnn = self.CNN(x,t,y, output_bottleneck = output_bottleneck)
+            bottleneck = bottleneck_mlp * (1-weighing_factor) + torch.mean(bottleneck_cnn, dim = 2)* weighing_factor
+        else:  
+            x1 = self.MLP(x,t,y, output_bottleneck = output_bottleneck)
+            x2 = self.CNN(x,t,y, output_bottleneck = output_bottleneck)
+       
         self.weighing_factor = weighing_factor
         x = x1 * (1-weighing_factor) + x2* weighing_factor
+        if output_bottleneck:
+            return x, bottleneck
         return x
 
 
