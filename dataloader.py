@@ -527,20 +527,14 @@ def GeneticDataloaders1k(batchsize):
 
 
 if __name__ == "__main__":
-    x,y = load_data(False)
+    # for 1kG data
+    # first prepare the raw .vcf data with https://github.com/HaploKit/DiseaseCapsule/blob/master/data_preprocessing/gene_pca.py
+    # and copy the gene_pca.features.pkl file to the data folder
+    processes_data_1k() #only needed once
+    processes_data_1k_labels() #only needed once
+    GeneticDataloaders1k(32) # <-- data loader for pytorch
 
-    # processes_data_1k_labels()
-  #  ds = GeneticDataset1k()
-    # print(ds[0:10])
-    # print("loading dataset")
-    # ds = GeneticDataset()
-    # #ds = SynGeneticDataset(path = "finalruns/UnetMLP/")
-    # normds = []
-    # for i in range(len(ds)):
-    #     normds.append(ds[i][0].numpy())
-    # normds = np.asarray(normds)
-    # print(normds.shape)
-    # print("transforming data back")
-    # transform_data_back(normds)# "finalruns/UnetMLP_back.pkl")
-
-#processes_data()
+    # for the ALS data
+    # processes_data() #only needed once
+    # save_datameanstd() #needed for backtransformation #only needed once
+    #GeneticDataloaders(32) # <-- data loader for pytorch
