@@ -187,6 +187,7 @@ def train_diffusion():
             plt.ylabel("reconstruction error")
             plt.savefig(save_path+"/"+"histogramm.png")
             plt.close()
+            log_dict  = {}
             if model_name == "UnetCombined":
                 histogramm_lambda = histogramm_lambda.cpu().numpy()
                # plt.bar(np.arange(len(histogramm_lambda[:, 0]))/len(histogramm_lambda[:, 0]), histogramm_lambda[:, 0], width = 1/len(histogramm_lambda[:, 0]))
@@ -199,9 +200,13 @@ def train_diffusion():
                 plt.savefig(save_path+"/"+"histogramm_lambda.png")
                 plt.close()
                 img_lambda = Image.open(save_path+"/"+"histogramm_lambda.png")
+                log_dict["histogramm_lambda"] = wandb.Image(img_lambda)
 
             img = Image.open(save_path+"/"+"histogramm.png")
-            log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps, "histogramm": wandb.Image(img), "histogramm_lambda":wandb.Image(img_lambda)}
+            #log_dict = {"valloss": avgloss/avglosssteps, "val_rec_error": acc_rec_error/avglosssteps, "histogramm": wandb.Image(img)}
+            log_dict["valloss"] = avgloss/avglosssteps
+            log_dict["val_rec_error"] = acc_rec_error/avglosssteps
+            log_dict["histogramm"] = wandb.Image(img)
             wandb.log(log_dict)
         
             print(f"val at epoch: {e},  loss: {avgloss/avglosssteps} rec error:  {acc_rec_error/avglosssteps}")
