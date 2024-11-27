@@ -807,15 +807,16 @@ class PosSensitiveUnet(nn.Module):
             use_new_attention_order=True,
             pos_sensitive= True
             )
-       # self.input_layer = MultichannelLinear(sequence_length, in_channels, base_width)
-       # self.output_layer = MultichannelLinear(sequence_length, base_width , out_channels)
+       # elf.input_layer = MultichannelLinear(sequence_length, in_channels, base_width)
+        #self.output_layer = MultichannelLinear(sequence_length, base_width , out_channels)
 
     def forward(self,x, timesteps, y=None):
       #  print(x.shape)
-      #  x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
+       # x_skip = x
+       # x = self.input_layer(x.permute(0,2,1)).permute(0,2,1)
         x = self.Unet(x, timesteps,y)
        # x = self.output_layer(x.permute(0,2,1)).permute(0,2,1)
-        return x
+        return x 
 
 class PosSensitiveUnetDeep(nn.Module):
     def __init__(self,sequence_length, 

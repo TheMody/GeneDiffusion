@@ -93,9 +93,9 @@ def train_diffusion():
 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                # with torch.profiler.profile(with_flops=True, profile_memory=False, record_shapes=False) as prof:
-                print(xt.shape)
-                print(t.shape)
-                print(labels.shape)
+              #  print(xt.shape)
+              #  print(t.shape)
+               # print(labels.shape)
                 pred_eps = model(xt, t, y = labels)
                 if enforce_zeros:
                     loss = mse_loss_masked(pred_eps,eps, not_zero_mask)
