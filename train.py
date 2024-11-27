@@ -2,7 +2,7 @@
 import torch
 from diffusion_Process import GuassianDiffusion
 from unets import UNet, UNet1d, PosSensitiveUnet, PosSensitiveUnetDeep
-from model import  Unet2D, UnetMLP, UnetMLPandCNN, EncoderModelDiffusion, BaselineNet
+from model import  Unet2D, UnetMLP, UnetMLPandCNN, EncoderModelDiffusion, BaselineNet, UnetMLPandPosSensitive
 from dataloader import *
 import wandb
 from utils import *
@@ -37,6 +37,8 @@ def train_diffusion():
         model = EncoderModelDiffusion().to(device)
     if model_name == "UnetCombined":
         model = UnetMLPandCNN(channels_CNN = num_channels,channels_MLP = num_channels*gene_size,  base_width=base_width,num_classes=num_classes+1).to(device)
+    if model_name == "UnetCombinedPosSensitive":
+        model = UnetMLPandPosSensitive(channels_CNN = num_channels,channels_MLP = num_channels*gene_size,  base_width=base_width,num_classes=num_classes+1).to(device)
     if model_name == "Unet":
         model = UNet1d(in_channels=8, out_channels=8 ,num_classes=num_classes+1, base_width=base_width).to(device)
     if model_name == "PosSensitive":
@@ -80,22 +82,15 @@ def train_diffusion():
             for micro_step in range(gradient_accumulation_steps):
                 genes, labels = next(train_iter)
                 genes  = genes.to(device).float().permute(0,2,1)
-               # print(labels)
-                #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
                 #mask out label with 10% probability
                 # random__label_masks = torch.rand(labels.size()).to(device)
                 # random__label_masks = random__label_masks > 0.1
                 # labels = torch.where(random__label_masks, labels, num_classes)      
-
-               # print(labels)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                # with torch.profiler.profile(with_flops=True, profile_memory=False, record_shapes=False) as prof:
-              #  print(xt.shape)
-              #  print(t.shape)
-               # print(labels.shape)
                 pred_eps = model(xt, t, y = labels)
                 if enforce_zeros:
                     loss = mse_loss_masked(pred_eps,eps, not_zero_mask)
@@ -107,10 +102,8 @@ def train_diffusion():
                 #     if event.flops > 0:
                 #         total_flops += event.flops
                 # print(f"total flops: {total_flops}")
-                #print("abs_mean of reconstructed data",data_abs_mean(x_r))
                 x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
                 acc_extra += data_abs_mean(x_r-genes).item()
-                #print("abs_mean error",acc_extra)
                 
                 avgloss = avgloss  + loss.item()
                 avglosssteps = avglosssteps + 1
