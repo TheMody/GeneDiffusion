@@ -81,18 +81,18 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
             # Gather data and report
             log_freq = 1
             running_loss += accloss
-            if i % log_freq == 0:
+            if step % log_freq == 0:
                 #   acc = np.sum(np.argmax(outputs.detach().cpu().numpy(), axis = 1) == labels.detach().cpu().numpy())/labels.shape[0]
                 avg_loss = running_loss / log_freq # loss per batch
                 log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0], "time_per_step": time.time()-start}
                 wandb.log(log_dict)
                 running_loss = 0.
-                if i % 100 == 0:
+                if step % 100 == 0:
                     print('  batch {} loss: {} accuracy: {}'.format(i + 1, avg_loss, acc))
                     
 
             # #evaluate model after epoch
-            if i % 500 == 0:
+            if step % 500 == 0:
                 with torch.no_grad():
                     accummulated_acc = 0.0
                     accummulated_loss = 0.0
@@ -117,4 +117,7 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
 
 
 if __name__ == "__main__":
-    train_classifier("mlp", path = "finalruns/UnetMLP/", data = "syn")
+    # train_classifier("mlp")
+    # train_classifier("cnn")
+    # train_classifier("transformer")
+    train_classifier("mlp", path = "syn_data_UnetCombinedPosSensitive/", data = "syn")
