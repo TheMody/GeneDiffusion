@@ -29,8 +29,8 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     
     if data == "syn":
       geneticDataSyn = SynGeneticDataset(path = path)#path = "syndaUnetconv/")path = "UnetMLP_supergood/"path = "syn_data_Transformer/"path = "syn_data_Transformer/"
-      train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"]//2, shuffle=True)
-      train_2,test_dataloader = GeneticDataloaders(config["batch_size"]//2, True, percent_unlabeled=0)
+      train_dataloader = DataLoader(geneticDataSyn, batch_size=config["batch_size"], shuffle=True)#//2 for half syn
+      _,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0)#//2
     else:
        train_dataloader,test_dataloader = GeneticDataloaders(config["batch_size"], True, percent_unlabeled=0) 
     
@@ -42,7 +42,7 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
     step = 0
     for epoch in range(epochs_classifier):
         dataloader_iter = iter(train_dataloader)
-        dataloader_iter2 = iter(train_2)
+        #dataloader_iter2 = iter(train_2)
         if step >= max_step-2:
             break
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
@@ -52,13 +52,13 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
             accacc = 0.0
             for micro_step in range(gradient_accumulation_steps):
                 inputs, labels = next(dataloader_iter)
-                try:
-                    inputs2, labels2 = next(dataloader_iter2)
-                except StopIteration:
-                    dataloader_iter2 = iter(train_2)
-                    inputs2, labels2 = next(dataloader_iter2)
-                inputs = torch.cat((inputs,inputs2),0)
-                labels = torch.cat((labels,labels2),0)
+                # try:
+                #     inputs2, labels2 = next(dataloader_iter2)
+                # except StopIteration:
+                #     dataloader_iter2 = iter(train_2)
+                #     inputs2, labels2 = next(dataloader_iter2)
+                # inputs = torch.cat((inputs,inputs2),0)
+                # labels = torch.cat((labels,labels2),0)
 
                 inputs = inputs.float().to(device)
 
