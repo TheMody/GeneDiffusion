@@ -20,15 +20,17 @@ for replication:
 `$ conda env create -f environment.yml` and `$ conda activate sls3`
 
 ## Results:
-
-![Loss Curve](figures/loss.png)
-![Reconstruction Error](figures/recerror.png)
-
-Training for the different Models converges nicely.
-
 When generating synthetic data and training on this synthethic data the resulting accuracy on real validation data is displayed here:
 
 ![Recovery Rates](figures/Recovery_Rates.png)
+
+Training for the different Models converges nicely as can be seen below:
+
+![Reconstruction Error](figures/recerror.png)
+
+
+
+
 
 ## Replicating Results
 For replicating the ALS Results run:
