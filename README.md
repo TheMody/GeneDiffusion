@@ -21,8 +21,8 @@ for replication:
 
 ## Results:
 
-![Loss Curve](figures/loss.pdf)
-![Reconstruction Error](figures/recerror.pdf)
+![Loss Curve](figures/loss.png)
+![Reconstruction Error](figures/recerror.png)
 
 Training for the different Models converges nicely.
 
