@@ -1,4 +1,4 @@
-# Genetic Diffusion
+# Generating Synthetic Genotypes using Diffusion Models
 
 The Repository for generating synthetic genetics data with Diffusion Models.
 
