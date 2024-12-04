@@ -19,6 +19,16 @@ for replication:
 - for easy replication use conda and environment.yml eg:
 `$ conda env create -f environment.yml` and `$ conda activate sls3`
 
+## Results:
+
+![Loss Curve](figures/loss.pdf)
+![Reconstruction Error](figures/recerror.pdf)
+
+Training for the different Models converges nicely.
+
+When generating synthetic data and training on this synthethic data the resulting accuracy on real validation data is displayed here:
+
+![Recovery Rates](figures/Recovery_Rates.png)
 
 ## Replicating Results
 For replicating the ALS Results run:
