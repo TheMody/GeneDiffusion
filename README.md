@@ -24,13 +24,13 @@ for replication:
 For replicating the ALS Results run:
 
 ```
-$ python train.py
+$ python main_als.py
 ```
 The script expects the sigSNPs_pca.features.pkl to be in the data/sigSNPs_pca.features.pkl path. This data is not provided by this repository.
 
 
 If you want to train the model on the 1KG data use https://github.com/HaploKit/DiseaseCapsule/blob/master/data_preprocessing/gene_pca.py on the VCF files from https://www.internationalgenome.org/ to produce gene_pca.features.pkl and move it into the data folder.
 ```
-$ python train_1k.py
+$ python main_1k.py
 ```
 will then replicate the results on the 1KG genome dataset
