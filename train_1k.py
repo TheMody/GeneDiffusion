@@ -6,13 +6,12 @@ from utils.model import  Unet2D, UnetMLP, UnetMLPandCNN, EncoderModelDiffusion, 
 from utils.dataloader import *
 import wandb
 from utils.utils import *
-from generate1k import generate_sample
-from config_1k import *
+from KG1.generate1k import generate_sample
+from KG1.config_1k import *
 import time
-from train_classifier_1k import train_classifier
+from KG1.train_classifier_1k import train_classifier
 from PIL import Image
 import matplotlib.pyplot as plt
-import umap
 
 def data_abs_mean(x):
     return torch.mean(torch.abs(x))
@@ -83,33 +82,19 @@ def train_diffusion():
             acc_extra = 0.0
             for micro_step in range(gradient_accumulation_steps):
                 genes, labels = next(train_iter)
-               # print(labels)
                 genes  = genes.to(device).float().permute(0,2,1)
-                #print("abs_mean of data",data_abs_mean(genes))
                 labels = labels.to(device)
-                #mask out label with 10% probability
-                # random__label_masks = torch.rand(labels.size()).to(device)
-                # random__label_masks = random__label_masks > 0.1
-                # labels = torch.where(random__label_masks, labels, num_classes)      
-
-               # print(labels)
                 t = torch.randint(max_steps, (len(genes),), dtype=torch.int64).to(device)
 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
-              #  print(torch.max(eps))
-              #  print(torch.min(eps))
-                print(xt.shape)
                 pred_eps = model(xt, t, y = labels)
-               # print(pred_eps.shape)
                 if enforce_zeros:
                     loss = mse_loss_masked(pred_eps,eps, not_zero_mask)
                 else:
                     loss = critertion(pred_eps,eps)
                 
-                #print("abs_mean of reconstructed data",data_abs_mean(x_r))
                 x_r = diffusion.reverse_forward_process_simple(xt,  t, pred_eps)
                 acc_extra += data_abs_mean(x_r-genes).item()
-                #print("abs_mean error",acc_extra)
                 
                 avgloss = avgloss  + loss.item()
                 avglosssteps = avglosssteps + 1
@@ -139,8 +124,6 @@ def train_diffusion():
                 log_dict["lr"] = lrs.get_last_lr()[0]
 
             wandb.log(log_dict)
-
-       # if e % 1000 == 0 and e != 0:
         model.eval()
         with torch.no_grad():
             avgloss = 0
@@ -149,9 +132,6 @@ def train_diffusion():
             ts = 0
             histogramm = torch.zeros((max_steps,2)).to(device)
             for step, (genes, labels) in enumerate(valdataloader):
-                # if step > 100:
-                #     break
-            # assert (genes.max().item() <= 1) and (0 <= genes.min().item())
                 genes  = genes.to(device).float().permute(0,2,1)
                 labels = labels.to(device)
                 if ts + len(genes) > max_steps:
@@ -162,7 +142,6 @@ def train_diffusion():
                     ts = ts + len(genes)
 
                 t = t*2 % max_steps
-            #    print(t)
                 
                 xt, eps = diffusion.sample_from_forward_process(genes,t)
                 pred_eps = model(xt, t, y = labels)
@@ -203,7 +182,6 @@ def train_diffusion():
                 
 if __name__ == '__main__':
     train_diffusion()
-   # wandb.finish()
     model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()
     generate_sample(model, num_of_samples, savefolder=save_path)
