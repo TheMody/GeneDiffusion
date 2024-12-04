@@ -218,7 +218,6 @@ def train_diffusion():
                 
 if __name__ == '__main__':
     train_diffusion()
-   # wandb.finish()
     model = torch.load(save_path+"/"+"model.pt").to(device)
     model.eval()
     generate_sample(model, num_of_samples, savefolder=save_path)
