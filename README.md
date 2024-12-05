@@ -20,7 +20,7 @@ for replication:
 `$ conda env create -f environment.yml` and `$ conda activate sls3`
 
 ## Results:
-When generating synthetic data and training on this synthethic data the resulting accuracy on real validation data is displayed here:
+When generating synthetic data and training on this synthethic data the resulting recovery rate i.e. accuracy now / accuracy when trained on real data is displayed here:
 
 ![Recovery Rates](figures/Recovery_Rates.png)
 
