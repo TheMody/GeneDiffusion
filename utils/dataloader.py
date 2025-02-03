@@ -97,9 +97,6 @@ def processes_data_1k_labels():
     fileObject.close()
 
 
-
-
-
 def generate_train_test_split_1k(processed = True, normalize = normalize_data):
     x,y = load_data_1k(processed = processed)
 
@@ -141,8 +138,6 @@ def generate_train_test_split_1k(processed = True, normalize = normalize_data):
     fileObject = open("data/ds_train_1k", 'wb')
     pickle.dump((x_train,y_train),fileObject )
     fileObject.close()
-
-
 
 
 class GeneticDataset1k(Dataset):
@@ -272,9 +267,9 @@ def transform_data_back(x, save= "ds/backtransformed_ds"):
     fileObject = open("data/normlization.pkl", 'rb')
     xmean,xstd = pickle.load(fileObject)
     fileObject.close()
+  #  print(xmean)
+   # print(xstd)
     x = x * xstd + xmean
-
-
 
 
     #now transform back to weird gene snps format
@@ -346,15 +341,7 @@ def generate_train_test_split(processed = True, normalize = normalize_data):
     print("len of dataset", len(x))
     
     processed = processed
-    if normalize:
-        xstd = np.std(x, axis = 0)
-        xstd[xstd == 0.0] +=1
-        xmean = np.mean(x,axis=0)
-        x = x-xmean
-        x = x / xstd 
-        fileObject = open("data/normlization.pkl", 'wb')
-        pickle.dump((xmean,xstd),fileObject )
-        fileObject.close()
+
 
     
 
@@ -398,6 +385,19 @@ def generate_train_test_split(processed = True, normalize = normalize_data):
     x_train = np.delete(x, indices, axis = 0)
     y_train = np.delete(y, indices, axis = 0)
     print("len of train set", len(x_train))
+
+    if normalize:
+        xstd = np.std(x_train, axis = 0)
+        xstd[xstd == 0.0] +=1
+        xmean = np.mean(x_train,axis=0)
+        x_train = x_train-xmean
+        x_train = x_train / xstd 
+        x_test = x_test - xmean
+        x_test = x_test / xstd
+        fileObject = open("data/normlization.pkl", 'wb')
+        pickle.dump((xmean,xstd),fileObject )
+        fileObject.close()
+
 
     fileObject = open("data/ds_test", 'wb')
     pickle.dump((x_test,y_test),fileObject )
@@ -530,6 +530,7 @@ if __name__ == "__main__":
     # for 1kG data
     # first prepare the raw .vcf data with https://github.com/HaploKit/DiseaseCapsule/blob/master/data_preprocessing/gene_pca.py
     # and copy the gene_pca.features.pkl file to the data folder
+   # transform_data_back(np.zeros((1,26624,8)))
     processes_data_1k() #only needed once
     processes_data_1k_labels() #only needed once
     GeneticDataloaders1k(32) # <-- data loader for pytorch
