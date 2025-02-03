@@ -334,12 +334,6 @@ class EncoderModelPreTrain(nn.Module):
        # self.dense1 = nn.Linear(input_dim, hidden_dim)
         self.EmbeddingLayer = MultichannelLinear(18432, input_dim, hidden_dim,16)
         self.module_list = nn.ModuleList([nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu') for i in range(n_layers)])
-    #     self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-    #     self.encoder_layer2 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-    #     self.encoder_layer3 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-    #   #  self.encoder_layer4 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-    #    # self.encoder_layer5 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
-    #     self.encoder_layer6 = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=6,dim_feedforward=4*hidden_dim, batch_first=True, activation='gelu')
         # self.PositionalEncoding = nn.Embedding(gene_size, hidden_dim)
         self.classification_token = nn.Parameter(torch.Tensor(hidden_dim), requires_grad=True)
         # self.pos_input = torch.zeros(batch_size, gene_size).long().to(device)
@@ -495,7 +489,7 @@ class MLPModel(nn.Module):
         for i in range(1):
             x2 = x
             x = F.gelu(self.linears[i*2](x))
-            x = F.gelu(self.linears[i*2+1](x2)) +x2
+            x = F.gelu(self.linears[i*2+1](x)) +x2
     #    x = F.gelu(self.dense2(x))
         return self.dense3(x)
 

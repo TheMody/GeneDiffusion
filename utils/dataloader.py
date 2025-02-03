@@ -110,7 +110,7 @@ def generate_train_test_split_1k(processed = True, normalize = normalize_data):
         xstd = np.std(x, axis = 0)
         xstd[xstd == 0.0] +=1
         xmean = np.mean(x,axis=0)
-        x-xmean
+        x = x-xmean
         x = x / xstd 
         fileObject = open("data/normlization_1k.pkl", 'wb')
         pickle.dump((xmean,xstd),fileObject )
@@ -257,7 +257,7 @@ def save_datameanstd():
     xstd = np.std(x, axis = 0)
     xstd[xstd == 0.0] +=1
     xmean = np.mean(x,axis=0)
-    x-xmean
+    x = x-xmean
     x = x / xstd 
     fileObject = open("data/normlization.pkl", 'wb')
     pickle.dump((xmean,xstd),fileObject )
@@ -350,7 +350,7 @@ def generate_train_test_split(processed = True, normalize = normalize_data):
         xstd = np.std(x, axis = 0)
         xstd[xstd == 0.0] +=1
         xmean = np.mean(x,axis=0)
-        x-xmean
+        x = x-xmean
         x = x / xstd 
         fileObject = open("data/normlization.pkl", 'wb')
         pickle.dump((xmean,xstd),fileObject )
