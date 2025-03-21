@@ -66,10 +66,6 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
         for i in range(len(train_dataloader) // gradient_accumulation_steps):
                 steps_since_last_eval += 1
                 start = time.time()
-
-
-            #    accacc = 0.0
-
                 inputs_list = []
                 labels_list = []
                 for micro_step in range(gradient_accumulation_steps):
