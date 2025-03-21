@@ -7,6 +7,7 @@ from utils.cosine_scheduler import CosineWarmupScheduler
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from ALS.config import *
+from utils.caps_net import CapsNet
 import time
 
 
@@ -20,6 +21,8 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
         model = ConvclsModel(input_dim=num_channels)
     elif model == "transformer":
         model = EncoderModel()
+    elif model == "capsule":
+        model = CapsNet(input_dim = num_channels*gene_size, num_classes = num_classes)
         
     model = model.to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr_classifier)
@@ -87,7 +90,7 @@ def train_classifier(model = "mlp", data = "syn", path = save_path+"/"):
                 log_dict = {"avg_loss_classifier": avg_loss, "accuracy_classifier": acc, "lr_classifier": scheduler.get_lr()[0], "time_per_step": time.time()-start}
                 wandb.log(log_dict)
                 running_loss = 0.
-                if step % 100 == 0:
+                if (step+1) % 25 == 0:
                     print('  batch {} loss: {} accuracy: {}'.format(i + 1, avg_loss, acc))
                     
 
@@ -120,4 +123,5 @@ if __name__ == "__main__":
     # train_classifier("mlp")
     # train_classifier("cnn")
     # train_classifier("transformer")
-    train_classifier("mlp", path = "syn_data_PosSensitive/", data = "syn")
+    #train_classifier("mlp", path = "finalruns/UnetCombined/", data = "syn")
+    train_classifier("capsule", path = "finalruns/UnetCombined/", data = "syn")

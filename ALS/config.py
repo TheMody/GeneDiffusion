@@ -1,16 +1,16 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 1
-gradient_accumulation_steps = 8
+batch_size = 32
+gradient_accumulation_steps = 1
 epochs = 100
 epochs_vae = 4000
-epochs_classifier = 10
+epochs_classifier = 100
 max_steps = 500
 num_classes = 2
 num_channels = 8
 gene_size = 18432
-lr_classifier = 5e-5
+lr_classifier = 1e-4#5e-5
 lr_pretrain = 1e-4
 lr_diffusion = 2e-4
 lr_vae = 1e-4

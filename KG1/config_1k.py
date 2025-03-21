@@ -1,16 +1,16 @@
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 1
-gradient_accumulation_steps = 8
+batch_size = 32
+gradient_accumulation_steps = 1
 epochs = 100
 epochs_vae = 4000
-epochs_classifier = 10
+epochs_classifier = 100 #10
 max_steps = 500
 num_classes = 26
 num_channels = 8
 gene_size = 26624
-lr_classifier = 5e-5
+lr_classifier = 1e-4 #5e-5
 lr_pretrain = 1e-4
 lr_diffusion = 2e-4
 lr_vae = 1e-4
@@ -26,6 +26,7 @@ zero_mask = torch.load("data/zero_mask1k.pt")
 channel_multiplier = (1,1,1,1,2,2,3,4)#(1,1,1,1,2,2,3,4,6,8,16,32) # (1,1,1,1,2,2,3,4)
 attention_resolutions = [32,64]#[32,128] #[32,64]
 base_width = 64
+optim = "adam"
 model_name = "UnetCombined" # "UnetMLP"# "Unet"#"PosSensitiveLarge" #"PosSensitiveDeep"#"PosSensitive" # , "UnetLarge", ,PosSensitive UnetMLP_working #Baseline
 save_path = "syn_data_1k_"+model_name
 percent_unlabeled = 0#.95

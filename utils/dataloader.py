@@ -267,8 +267,6 @@ def transform_data_back(x, save= "ds/backtransformed_ds"):
     fileObject = open("data/normlization.pkl", 'rb')
     xmean,xstd = pickle.load(fileObject)
     fileObject.close()
-  #  print(xmean)
-   # print(xstd)
     x = x * xstd + xmean
 
 
