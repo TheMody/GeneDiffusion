@@ -1,6 +1,6 @@
 # Generating Synthetic Genotypes using Diffusion Models
 
-The Repository for generating synthetic genetics data with Diffusion Models.
+The Repository for generating synthetic genetics data with Diffusion Models. Corresponding to the Paper https://arxiv.org/pdf/2412.03278 accepted at ISMB 2025
 
 ## Abstract
 
