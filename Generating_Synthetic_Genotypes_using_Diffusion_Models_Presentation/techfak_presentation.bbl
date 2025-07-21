@@ -1,0 +1,80 @@
+\begin{thebibliography}{}
+
+\bibitem[Ahronoviz and Gronau, 2024]{ahronoviz2024genome}
+Ahronoviz, S. and Gronau, I. (2024).
+\newblock Genome-ac-gan: Enhancing synthetic genotype generation through
+  auxiliary classification.
+\newblock {\em bioRxiv}, pages 2024--02.
+
+\bibitem[Beyer et~al., 1999]{beyer1999nearest}
+Beyer, K., Goldstein, J., Ramakrishnan, R., and Shaft, U. (1999).
+\newblock When is “nearest neighbor” meaningful?
+\newblock In {\em International conference on database theory}, pages 217--235.
+  Springer.
+
+\bibitem[Burnard et~al., 2023]{burnard2023generating}
+Burnard, C., Mancheron, A., and Ritchie, W.~J. (2023).
+\newblock Generating realistic artificial human genomes using adversarial
+  autoencoders.
+\newblock {\em bioRxiv}, pages 2023--12.
+
+\bibitem[Dang et~al., 2023]{dang2023tractable}
+Dang, M., Liu, A., Wei, X., Sankararaman, S., and Van~den Broeck, G. (2023).
+\newblock Tractable and expressive generative models of genetic variation data.
+\newblock {\em bioRxiv}.
+
+\bibitem[Nguyen et~al., 2023]{nguyen2023hyenadna}
+Nguyen, E., Poli, M., Faizi, M., Thomas, A., Birch-Sykes, C., Wornow, M.,
+  Patel, A., Rabideau, C., Massaroli, S., Bengio, Y., Ermon, S., Baccus, S.~A.,
+  and Ré, C. (2023).
+\newblock Hyenadna: Long-range genomic sequence modeling at single nucleotide
+  resolution.
+
+\bibitem[Perera et~al., 2022]{perera2022generative}
+Perera, M., Montserrat, D.~M., Barrab{\'e}s, M., Geleta, M., Gir{\'o}-i Nieto,
+  X., and Ioannidis, A.~G. (2022).
+\newblock Generative moment matching networks for genotype simulation.
+\newblock In {\em 2022 44th Annual International Conference of the IEEE
+  Engineering in Medicine \& Biology Society (EMBC)}, pages 1379--1383. IEEE.
+
+\bibitem[Szatkownik et~al., 2024]{szatkownik2024towards}
+Szatkownik, A., Furtlehner, C., Charpiat, G., Yelmen, B., and Jay, F. (2024).
+\newblock Towards creating longer genetic sequences with gans: Generation in
+  principal component space.
+\newblock In {\em Machine Learning in Computational Biology}, pages 110--122.
+  PMLR.
+
+\bibitem[Wharrie et~al., 2023]{hapnest}
+Wharrie, S., Yang, Z., Raj, V., Monti, R., Gupta, R., Wang, Y., Martin, A.,
+  O’Connor, L.~J., Kaski, S., Marttinen, P., Palamara, P.~F., Lippert, C.,
+  and Ganna, A. (2023).
+\newblock {HAPNEST: efficient, large-scale generation and evaluation of
+  synthetic datasets for genotypes and phenotypes}.
+\newblock {\em Bioinformatics}, 39(9):btad535.
+
+\bibitem[Yale et~al., 2019]{yale2019privacy}
+Yale, A., Dash, S., Dutta, R., Guyon, I., Pavao, A., and Bennett, K.~P. (2019).
+\newblock Privacy preserving synthetic health data.
+\newblock In {\em ESANN 2019-European Symposium on Artificial Neural Networks,
+  Computational Intelligence and Machine Learning}.
+
+\bibitem[Yelmen et~al., 2023]{yelmen2023deep}
+Yelmen, B., Decelle, A., Boulos, L.~L., Szatkownik, A., Furtlehner, C.,
+  Charpiat, G., and Jay, F. (2023).
+\newblock Deep convolutional and conditional neural networks for large-scale
+  genomic data generation.
+\newblock {\em PLoS Computational Biology}, 19(10):e1011584.
+
+\bibitem[Yelmen et~al., 2021]{yelmen2021creating}
+Yelmen, B., Decelle, A., Ongaro, L., Marnetto, D., Tallec, C., Montinaro, F.,
+  Furtlehner, C., Pagani, L., and Jay, F. (2021).
+\newblock Creating artificial human genomes using generative neural networks.
+\newblock {\em PLoS genetics}, 17(2):e1009303.
+
+\bibitem[Zhang et~al., 2023]{zhang2023dnagpt}
+Zhang, D., Zhang, W., He, B., Zhang, J., Qin, C., and Yao, J. (2023).
+\newblock Dnagpt: a generalized pretrained tool for multiple dna sequence
+  analysis tasks.
+\newblock {\em bioRxiv}, pages 2023--07.
+
+\end{thebibliography}

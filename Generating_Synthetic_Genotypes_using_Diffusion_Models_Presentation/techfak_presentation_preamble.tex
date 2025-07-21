@@ -1,0 +1,160 @@
+% Techfak Presentation template
+% Developed by Benjamin Paaßen, 2019
+%
+% This LaTeX template is loosely based on the 2019 Bielefeld University Corporate Design
+% https://www.uni-bielefeld.de/corporatedesign/
+%
+% It is developed from an earlier CITEC corporate design presentation template,
+% also developed by Benjamin Paaßen
+%
+% For further question, you may contact me at https://bpaassen.gitlab.io/
+%
+% For this file to compile you need several other files, which should be part of
+% any distribution of this file, namely:
+%
+% tango-colors.sty
+% techfak_logo.pdf
+% techfak_presentation_preamble.tex
+% unibi-colors.sty
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\mode<presentation>
+
+\usepackage{tikz}
+\usepackage{svg}
+% unibi/techfak Colors
+\usepackage{unibi-colors}
+% additional colors
+\usepackage{tango-colors}
+
+% tikz styles
+
+\usetikzlibrary{shapes, arrows, backgrounds, intersections, decorations.pathreplacing}
+
+\tikzstyle{point}=[circle, inner sep=0pt, minimum size=3mm, thick, anchor=center]
+\tikzstyle{textnode}=[draw=none, fill=none]
+\tikzstyle{proto}=[diamond, inner sep=0pt, minimum size=7mm, thick, anchor=center]
+\tikzstyle{edge}=[->, >=stealth', shorten <=2pt, shorten >=2pt, auto, semithick]
+\tikzstyle{class0color}=[aluminium6]
+\tikzstyle{class0}=[draw=aluminium6, fill=aluminium4, text=aluminium6]
+\tikzstyle{class1color}=[techfak-blue]
+\tikzstyle{class1}=[draw=techfak-blue, fill=techfak-blue-bright, text=techfak-blue]
+\tikzstyle{class2color}=[unibi-green]
+\tikzstyle{class2}=[draw=unibi-green, fill=unibi-green-bright, text=unibi-green]
+
+% Beamer setup
+
+\setbeamercolor*{structure}{fg=techfak-blue}
+\setbeamercolor{block title}{bg=white}
+\setbeamercolor{block body}{bg=WhiteSmoke}
+\setbeamercolor*{footline}{bg=techfak-blue,fg=techfak-blue}
+
+\usecolortheme{orchid}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]{}
+\setbeamertemplate{headline}{
+% include techfak logo on every slight in the top right corner
+\begin{tikzpicture}
+\node at (0,0.2) {}; % anchor node
+\node[right] at (13,-0.55) {\includegraphics[width=2.5cm]{techfak_logo.pdf}}; % image node
+\end{tikzpicture}
+
+\vspace{-1.3cm}
+}
+\setbeamertemplate{frametitle}{
+\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle
+}
+\setbeamertemplate{bibliography item}[text]
+\setbeamertemplate{section in toc}[sections numbered]
+
+\usefonttheme{professionalfonts}
+
+% Kapiteltrennfolie
+\newcommand{\chapterframe}[1]{
+
+\begin{frame}
+
+\vfill
+\centering
+\vspace{-2.3cm}
+\begin{huge}
+\usebeamerfont{title}\usebeamercolor[fg]{title}#1
+\end{huge}
+
+\end{frame}
+}
+
+% section slides
+
+\AtBeginSection[]{
+\chapterframe{\insertsectionhead}
+}
+
+% Title Frame Makro
+
+\newcommand{\titleframe}[1]{
+{
+
+\begin{frame}[plain]
+\usebackgroundtemplate{}%
+\begin{tikzpicture}[overlay, remember picture]
+% helper nodes
+\node[anchor=center] (center) at (current page.center) {};
+% actual picture
+\node[anchor=center] (pic) [below of=center, node distance=0cm] {
+\includegraphics[width=\paperwidth]{CodeFor-bielefeld.svg}%
+};
+\end{tikzpicture}
+\end{frame}
+}
+}
+
+% Picture frame makro
+
+% Arguments:
+% 1: Frame title
+% 2: Image link
+% 3: Image parameters
+% 4: Copyright notice
+\newcommand{\custompicframe}[4]{
+\begin{frame}{#1}
+\begin{tikzpicture}[overlay, remember picture]
+% helper nodes
+\node[anchor=south] (bottom) at (current page.south) {};
+\node[anchor=center] (center) at (current page.center) {};
+% actual picture
+\node[anchor=center] (pic) [below of=center, node distance=0.5cm] {
+\includegraphics[#3]{CodeFor-bielefeld.svg}%
+};
+% copyright notice
+\node (copyright) [above of=bottom, node distance=0.6cm] {\color{techfak-blue-bright}\tiny #4};
+\end{tikzpicture}
+\end{frame}
+}
+
+% Arguments:
+% 1: Image Name
+% 2: Image Link
+% 3: License Name
+% 4: License Link
+\newcommand{\cprtext}[4]{
+{\color{techfak-blue-bright}\tiny #1 (\href{#2}{Link}); Usage according to \href{#4}{#3}.}
+}
+
+% Arguments:
+% 1: Frame title
+% 2: Image link
+% 3: Image parameters
+% 4: Image Name
+% 5: Image Link
+% 6: License Name
+% 7: License Link
+\newcommand{\picframe}[7]{
+\custompicframe{#1}{#2}{#3}{#4 (\href{#5}{Link}); Usage according to \href{#7}{#6}.}
+}
+
+\setbeamercolor{alerted text}{fg=techfak-blue}
+\renewcommand{\emph}[1]{\textbf{\color{techfak-blue} #1}}
